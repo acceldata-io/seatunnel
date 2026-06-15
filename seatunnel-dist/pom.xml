@@ -101,7 +101,7 @@
                 <snowflake.version>3.13.29</snowflake.version>
 
                 <!-- Imap storage dependency package  -->
-                <hadoop-aliyun.version>3.1.4</hadoop-aliyun.version>
+                <hadoop-aliyun.version>3.3.6.3.3.6.4-1</hadoop-aliyun.version>
                 <json-smart.version>2.4.7</json-smart.version>
                 <aws-java-sdk.version>1.11.271</aws-java-sdk.version>
                 <netty-buffer.version>4.1.89.Final</netty-buffer.version>
@@ -831,7 +831,7 @@
                 </dependency>
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
-                    <artifactId>seatunnel-hadoop3-3.1.4-uber</artifactId>
+                    <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
                     <version>${project.version}</version>
                     <classifier>optional</classifier>
                     <scope>provided</scope>
@@ -1019,7 +1019,7 @@
 
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
-                    <artifactId>seatunnel-hadoop3-3.1.4-uber</artifactId>
+                    <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
                     <version>${project.version}</version>
                     <classifier>optional</classifier>
                     <scope>provided</scope>
