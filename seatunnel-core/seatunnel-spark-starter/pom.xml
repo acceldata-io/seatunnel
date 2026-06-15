@@ -107,4 +107,13 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>spark-4</id>
+            <modules>
+                <module>seatunnel-spark-4.1-starter</module>
+            </modules>
+        </profile>
+    </profiles>
+
 </project>
