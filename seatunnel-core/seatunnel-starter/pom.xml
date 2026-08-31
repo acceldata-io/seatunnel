@@ -28,7 +28,7 @@
     <name>SeaTunnel : Core : Starter</name>
 
     <properties>
-        <hadoop3.version>3.3.6.3.3.6.5-1</hadoop3.version>
+        <hadoop3.version>3.3.6.3.3.6.5-1012</hadoop3.version>
     </properties>
 
     <dependencies>

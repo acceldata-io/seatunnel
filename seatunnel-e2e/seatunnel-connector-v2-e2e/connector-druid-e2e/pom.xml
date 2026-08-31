@@ -26,7 +26,7 @@
     <name>SeaTunnel : E2E : Connector V2 : Druid</name>
 
     <properties>
-        <druid.version>29.0.1.3.3.6.5-1</druid.version>
+        <druid.version>29.0.1.3.3.6.5-1012</druid.version>
         <httpclient.version>4.5.13</httpclient.version>
     </properties>
 

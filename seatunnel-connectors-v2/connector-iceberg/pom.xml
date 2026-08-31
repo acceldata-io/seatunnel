@@ -33,7 +33,7 @@
         <iceberg.version>1.9.1</iceberg.version>
         <parquet-avro.version>1.13.1</parquet-avro.version>
         <avro.version>1.11.3</avro.version>
-        <hive.version>4.1.0.3.3.6.5-1</hive.version>
+        <hive.version>4.1.0.3.3.6.5-1012</hive.version>
         <connector.name>connector.iceberg</connector.name>
     </properties>
 

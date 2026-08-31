@@ -102,17 +102,17 @@
                 <snowflake.version>3.13.29</snowflake.version>
 
                 <!-- Imap storage dependency package  -->
-                <hadoop-aliyun.version>3.3.6.3.3.6.5-1</hadoop-aliyun.version>
+                <hadoop-aliyun.version>3.3.6.3.3.6.5-1012</hadoop-aliyun.version>
                 <json-smart.version>2.4.7</json-smart.version>
                 <aws-java-sdk.version>1.11.271</aws-java-sdk.version>
                 <netty-buffer.version>4.1.89.Final</netty-buffer.version>
-                <hive.exec.version>4.1.0.3.3.6.5-1</hive.exec.version>
-                <hive.jdbc.version>4.1.0.3.3.6.5-1</hive.jdbc.version>
+                <hive.exec.version>4.1.0.3.3.6.5-1012</hive.exec.version>
+                <hive.jdbc.version>4.1.0.3.3.6.5-1012</hive.jdbc.version>
                 <aliyun.sdk.oss.version>3.4.1</aliyun.sdk.oss.version>
                 <jdom.version>1.1</jdom.version>
                 <tidb.version>3.3.5</tidb.version>
                 <presto.version>0.279</presto.version>
-                <trino.version>472.3.3.6.5-1</trino.version>
+                <trino.version>472.3.3.6.5-1012</trino.version>
             </properties>
             <dependencies>
                 <!-- starters -->

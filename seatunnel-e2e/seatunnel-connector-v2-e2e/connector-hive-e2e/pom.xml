@@ -26,7 +26,7 @@
     <name>SeaTunnel : E2E : Connector V2 : Hive</name>
 
     <properties>
-        <hive.version>4.1.0.3.3.6.5-1</hive.version>
+        <hive.version>4.1.0.3.3.6.5-1012</hive.version>
         <thrift.version>0.9.3</thrift.version>
     </properties>
 
