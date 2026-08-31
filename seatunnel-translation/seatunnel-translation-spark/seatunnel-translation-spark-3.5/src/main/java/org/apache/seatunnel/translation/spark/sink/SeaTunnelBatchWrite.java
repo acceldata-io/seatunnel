@@ -94,6 +94,11 @@ public class SeaTunnelBatchWrite<StateT, CommitInfoT, AggregatedCommitInfoT>
     }
 
     @Override
+    public boolean useCommitCoordinator() {
+        return true;
+    }
+
+    @Override
     public DataWriterFactory createBatchWriterFactory(PhysicalWriteInfo info) {
         return new SeaTunnelSparkDataWriterFactory<>(sink, catalogTables, jobId, parallelism);
     }
