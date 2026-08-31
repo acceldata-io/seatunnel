@@ -29,7 +29,7 @@
     <name>SeaTunnel : Connectors V2 : Hbase</name>
 
     <properties>
-        <hbase.version>2.6.2.3.3.6.4-1</hbase.version>
+        <hbase.version>2.6.2.3.3.6.5-1</hbase.version>
     </properties>
 
     <dependencies>

@@ -26,7 +26,7 @@
 
     <properties>
         <mysql.version>8.0.16</mysql.version>
-        <hadoop.version>3.3.6.3.3.6.4-1</hadoop.version>
+        <hadoop.version>3.3.6.3.3.6.5-1</hadoop.version>
     </properties>
 
     <dependencies>

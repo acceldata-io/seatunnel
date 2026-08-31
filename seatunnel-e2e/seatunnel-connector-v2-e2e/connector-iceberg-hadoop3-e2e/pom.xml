@@ -25,7 +25,7 @@
     <name>SeaTunnel : E2E : Connector V2 : Iceberg : Hadoop3</name>
 
     <properties>
-        <hadoop-client.version>3.3.6.3.3.6.4-1</hadoop-client.version>
+        <hadoop-client.version>3.3.6.3.3.6.5-1</hadoop-client.version>
     </properties>
 
     <dependencies>

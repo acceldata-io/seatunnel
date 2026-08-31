@@ -25,7 +25,7 @@
     <name>SeaTunnel : Shade : Hadoop3</name>
 
     <properties>
-        <hadoop3.version>3.3.6.3.3.6.4-1</hadoop3.version>
+        <hadoop3.version>3.3.6.3.3.6.5-1</hadoop3.version>
         <guava.version>27.0-jre</guava.version>
     </properties>
 

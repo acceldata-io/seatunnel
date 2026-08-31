@@ -31,9 +31,9 @@
 
     <properties>
         <!-- Imap storage dependency package  -->
-        <hadoop-aliyun.version>3.3.6.3.3.6.4-1</hadoop-aliyun.version>
+        <hadoop-aliyun.version>3.3.6.3.3.6.5-1</hadoop-aliyun.version>
         <json-smart.version>2.4.7</json-smart.version>
-        <hadoop-aws.version>3.3.6.3.3.6.4-1</hadoop-aws.version>
+        <hadoop-aws.version>3.3.6.3.3.6.5-1</hadoop-aws.version>
         <netty-buffer.version>4.1.60.Final</netty-buffer.version>
     </properties>
 

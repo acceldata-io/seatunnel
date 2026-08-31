@@ -29,7 +29,7 @@
     <name>SeaTunnel : Connectors V2 : Kafka</name>
 
     <properties>
-        <kafka.client.version>3.7.2.3.3.6.4-1</kafka.client.version>
+        <kafka.client.version>3.7.2.3.3.6.5-1</kafka.client.version>
         <debezium.version>1.9.8.Final</debezium.version>
     </properties>
 

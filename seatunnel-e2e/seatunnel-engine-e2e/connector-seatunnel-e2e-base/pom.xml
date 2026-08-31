@@ -28,7 +28,7 @@
 
     <properties>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-        <hadoop-aliyun.version>3.3.6.3.3.6.4-1</hadoop-aliyun.version>
+        <hadoop-aliyun.version>3.3.6.3.3.6.5-1</hadoop-aliyun.version>
         <netty-buffer.version>4.1.89.Final</netty-buffer.version>
     </properties>
 
