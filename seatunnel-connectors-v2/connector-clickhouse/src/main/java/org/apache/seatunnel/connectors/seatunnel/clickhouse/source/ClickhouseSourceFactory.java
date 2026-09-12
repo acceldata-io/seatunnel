@@ -42,7 +42,7 @@ import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.ClickhouseProxy
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.ClickhouseUtil;
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.TypeConvertUtil;
 
-import com.clickhouse.client.ClickHouseColumn;
+import com.clickhouse.data.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseException;
 import com.clickhouse.client.ClickHouseNode;
 import com.clickhouse.client.ClickHouseResponse;

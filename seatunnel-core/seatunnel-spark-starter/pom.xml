@@ -31,8 +31,6 @@
     <name>SeaTunnel : Core : Spark Starter :</name>
 
     <modules>
-        <module>seatunnel-spark-2-starter</module>
-        <module>seatunnel-spark-3-starter</module>
         <module>seatunnel-spark-3.5-starter</module>
         <module>seatunnel-spark-starter-common</module>
     </modules>
@@ -111,6 +109,9 @@
     <profiles>
         <profile>
             <id>spark-4</id>
+            <activation>
+                <jdk>[17,)</jdk>
+            </activation>
             <modules>
                 <module>seatunnel-spark-4.1-starter</module>
             </modules>

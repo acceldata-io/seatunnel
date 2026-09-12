@@ -217,7 +217,7 @@ public class KuduUtil {
 
     private static Object parseValue(Type type, String value) {
         try {
-            switch (type.getDataType()) {
+            switch (type) {
                 case INT8:
                     return Byte.valueOf(value);
                 case INT16:

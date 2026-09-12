@@ -33,13 +33,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.clickhouse.client.ClickHouseColumn;
+import com.clickhouse.data.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseException;
 import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.client.ClickHouseRecord;
+import com.clickhouse.data.ClickHouseRecord;
 import com.clickhouse.client.ClickHouseRequest;
 import com.clickhouse.client.ClickHouseResponse;
-import com.clickhouse.client.ClickHouseValue;
+import com.clickhouse.data.ClickHouseValue;
 import com.clickhouse.client.data.ClickHouseIntegerValue;
 import com.clickhouse.client.data.ClickHouseLongValue;
 import com.clickhouse.client.data.ClickHouseSimpleRecord;

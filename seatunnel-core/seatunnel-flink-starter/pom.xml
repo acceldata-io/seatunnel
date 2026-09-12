@@ -33,10 +33,7 @@
     <name>SeaTunnel : Core : Flink Starter :</name>
 
     <modules>
-        <module>seatunnel-flink-13-starter</module>
-        <module>seatunnel-flink-15-starter</module>
         <module>seatunnel-flink-19-starter</module>
-        <module>seatunnel-flink-20-starter</module>
         <module>seatunnel-flink-starter-common</module>
     </modules>
 
