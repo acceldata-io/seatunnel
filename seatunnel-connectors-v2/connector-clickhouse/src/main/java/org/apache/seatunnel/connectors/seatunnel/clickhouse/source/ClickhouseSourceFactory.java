@@ -42,10 +42,10 @@ import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.ClickhouseProxy
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.ClickhouseUtil;
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.TypeConvertUtil;
 
-import com.clickhouse.data.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseException;
 import com.clickhouse.client.ClickHouseNode;
 import com.clickhouse.client.ClickHouseResponse;
+import com.clickhouse.data.ClickHouseColumn;
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 

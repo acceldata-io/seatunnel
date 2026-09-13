@@ -17,6 +17,7 @@
 
 package org.apache.seatunnel.connectors.seatunnel.kudu.catalog;
 
+import org.apache.seatunnel.shade.com.google.common.collect.Lists;
 import org.apache.seatunnel.shade.org.apache.commons.lang3.StringUtils;
 
 import org.apache.seatunnel.api.table.catalog.Catalog;
@@ -43,7 +44,6 @@ import org.apache.kudu.Type;
 import org.apache.kudu.client.KuduClient;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduTable;
-import org.apache.seatunnel.shade.com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.HashMap;

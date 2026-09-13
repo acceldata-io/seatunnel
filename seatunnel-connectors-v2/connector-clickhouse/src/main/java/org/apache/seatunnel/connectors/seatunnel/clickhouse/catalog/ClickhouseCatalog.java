@@ -41,8 +41,8 @@ import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.ClickhouseProxy
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.ClickhouseUtil;
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.util.TypeConvertUtil;
 
-import com.clickhouse.data.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseNode;
+import com.clickhouse.data.ClickHouseColumn;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;

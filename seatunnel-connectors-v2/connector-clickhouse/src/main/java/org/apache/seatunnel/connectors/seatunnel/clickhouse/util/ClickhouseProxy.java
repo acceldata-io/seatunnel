@@ -32,13 +32,13 @@ import org.apache.seatunnel.connectors.seatunnel.clickhouse.sink.file.Clickhouse
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.source.ClickhousePart;
 
 import com.clickhouse.client.ClickHouseClient;
-import com.clickhouse.data.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseException;
-import com.clickhouse.data.ClickHouseFormat;
 import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.data.ClickHouseRecord;
 import com.clickhouse.client.ClickHouseRequest;
 import com.clickhouse.client.ClickHouseResponse;
+import com.clickhouse.data.ClickHouseColumn;
+import com.clickhouse.data.ClickHouseFormat;
+import com.clickhouse.data.ClickHouseRecord;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
