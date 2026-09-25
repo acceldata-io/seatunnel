@@ -44,6 +44,18 @@ import java.util.stream.Collectors;
 public class SeaTunnelBatchWrite<StateT, CommitInfoT, AggregatedCommitInfoT>
         implements BatchWrite, StreamingWrite {
 
+    /**
+     * Spark 4.x added conflicting default {@code useCommitCoordinator()} implementations on both
+     * {@link BatchWrite} and {@link StreamingWrite}. Java's diamond-inheritance rule forces the
+     * class implementing both to disambiguate. Return {@code true} to preserve the Spark 3.x
+     * semantics (route commits through the driver-side commit coordinator so partial partition
+     * commits stay consistent).
+     */
+    @Override
+    public boolean useCommitCoordinator() {
+        return true;
+    }
+
     static {
         // Load DriverManager first to avoid deadlock between DriverManager's
         // static initialization block and specific driver class's static
