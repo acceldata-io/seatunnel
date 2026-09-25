@@ -231,10 +231,40 @@ public class SparkStarter implements Starter {
         }
     }
 
-    /** append appJar to StringBuilder */
+    /**
+     * Append the starter jar path to the spark-submit command.
+     *
+     * <p>Historically this hard-coded {@code EngineType.SPARK3.getStarterJarName()}, which broke
+     * every module whose physical artifact wasn't literally {@code seatunnel-spark-3-starter.jar}
+     * — for example {@code seatunnel-spark-3.5-starter.jar} and {@code
+     * seatunnel-spark-4.1-starter.jar}, both of which reuse this class from {@code
+     * seatunnel-spark-starter-common}. Spark-submit would then fail with {@code JAR file does not
+     * exist}.
+     *
+     * <p>Now we detect the loading location of {@link SparkStarter} at runtime; whichever
+     * spark-N-starter.jar pulled this class in wins. Falls back to the SPARK3 enum default only
+     * if the code source can't be resolved (bare-classpath / IDE runs).
+     */
     protected void appendAppJar(List<String> commands) {
-        commands.add(
-                Common.appStarterDir().resolve(EngineType.SPARK3.getStarterJarName()).toString());
+        commands.add(resolveAppJarPath());
+    }
+
+    static String resolveAppJarPath() {
+        try {
+            java.net.URL src =
+                    SparkStarter.class.getProtectionDomain().getCodeSource().getLocation();
+            if (src != null) {
+                String path = new File(src.toURI()).getAbsolutePath();
+                if (path.endsWith(".jar")) {
+                    return path;
+                }
+            }
+        } catch (Exception ignored) {
+            // fall through to enum default
+        }
+        return Common.appStarterDir()
+                .resolve(EngineType.SPARK3.getStarterJarName())
+                .toString();
     }
 
     private List<PluginIdentifier> getPluginIdentifiers(Config config, PluginType... pluginTypes) {
