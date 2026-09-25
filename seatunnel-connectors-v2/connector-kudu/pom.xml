@@ -23,14 +23,14 @@
     <parent>
         <groupId>org.apache.seatunnel</groupId>
         <artifactId>seatunnel-connectors-v2</artifactId>
-        <version>2.3.13.3.3.6.5-1012</version>
+        <version>2.3.13.${odp.release.version}</version>
     </parent>
 
     <artifactId>connector-kudu</artifactId>
     <name>SeaTunnel : Connectors V2 : Kudu</name>
 
     <properties>
-        <kudu.version>1.17.0.3.3.6.5-1012</kudu.version>
+        <kudu.version>1.17.0.${odp.release.version}</kudu.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
     </properties>
 

@@ -23,14 +23,14 @@
     <parent>
         <groupId>org.apache.seatunnel</groupId>
         <artifactId>seatunnel-connectors-v2</artifactId>
-        <version>2.3.13.3.3.6.5-1012</version>
+        <version>2.3.13.${odp.release.version}</version>
     </parent>
 
     <artifactId>connector-hbase</artifactId>
     <name>SeaTunnel : Connectors V2 : Hbase</name>
 
     <properties>
-        <hbase.version>2.6.2.3.3.6.5-1012</hbase.version>
+        <hbase.version>2.6.2.${odp.release.version}</hbase.version>
     </properties>
 
     <dependencies>
