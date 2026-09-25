@@ -15,6 +15,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# RECOMMENDED submission (per ODP Flink docs — application mode, not the
+# deprecated per-job / yarn-cluster path):
+#
+#     start-seatunnel-flink-19-connector-v2.sh \
+#       -e run-application -t yarn-application \
+#       --config <job.conf>
+#
+# Legacy per-job / yarn-cluster (`-m yarn-cluster`) still works but is
+# deprecated in Flink 1.15+ and will be removed upstream.
 
 set -eu
 # resolve links - $0 may be a softlink
@@ -41,6 +50,26 @@ APP_MAIN="org.apache.seatunnel.core.starter.flink.FlinkStarter"
 
 if [ -f "${CONF_DIR}/seatunnel-env.sh" ]; then
     . "${CONF_DIR}/seatunnel-env.sh"
+fi
+
+# --- classpath ordering ----------------------------------------------------
+# Hadoop distros (HDP / CDP / ODP / vanilla Bigtop) ship commons-cli-1.2 in
+# /usr/…/hadoop/lib and place that directory at the front of
+# `yarn.application.classpath`. Flink 1.15+ requires commons-cli 1.5 for
+# `Option.builder(String)`; the older jar wins the classloader race and the
+# YARN AM crashes with
+#     java.lang.NoSuchMethodError:
+#       org.apache.commons.cli.Option$Builder Option.builder(java.lang.String)
+#
+# Prepend Flink's own lib to HADOOP_CLASSPATH so the correct commons-cli
+# reaches the AM container. Also works for session / per-job modes.
+if [ -n "${FLINK_HOME:-}" ] && [ -d "${FLINK_HOME}/lib" ]; then
+  _FLINK_LIB_CP="${FLINK_HOME}/lib/*"
+  if [ -n "${HADOOP_CLASSPATH:-}" ]; then
+    export HADOOP_CLASSPATH="${_FLINK_LIB_CP}:${HADOOP_CLASSPATH}"
+  else
+    export HADOOP_CLASSPATH="${_FLINK_LIB_CP}"
+  fi
 fi
 
 if [ ! -f "${APP_DIR}/runtime.tar.gz" ];then

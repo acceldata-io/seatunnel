@@ -18,6 +18,7 @@
 package org.apache.seatunnel.core.starter.flink;
 
 import org.apache.seatunnel.common.config.Common;
+import org.apache.seatunnel.common.config.DeployMode;
 import org.apache.seatunnel.common.constants.EngineType;
 import org.apache.seatunnel.core.starter.Starter;
 import org.apache.seatunnel.core.starter.enums.MasterType;
@@ -43,6 +44,17 @@ public abstract class AbstractFlinkStarter implements Starter {
         this.shellName = engineType.getStarterShellName();
         this.flinkCommandArgs =
                 CommandLineUtils.parse(args, new FlinkCommandArgs(), shellName, true);
+        // yarn-application / kubernetes-application require Flink's
+        // "run-application" deploy mode. If the caller only supplied
+        // "--target yarn-application" (leaving deploy-mode at the RUN default),
+        // Flink itself will reject the combination. Upgrade silently so the
+        // ODP-recommended one-liner works:
+        //     -t yarn-application  (implies -e run-application)
+        if ((flinkCommandArgs.getMasterType() == MasterType.YARN_APPLICATION
+                        || flinkCommandArgs.getMasterType() == MasterType.KUBERNETES_APPLICATION)
+                && flinkCommandArgs.getDeployMode() != DeployMode.RUN_APPLICATION) {
+            flinkCommandArgs.setDeployMode(DeployMode.RUN_APPLICATION);
+        }
         // set the deployment mode, used to get the job jar path.
         Common.setDeployMode(flinkCommandArgs.getDeployMode());
         Common.setStarter(true);
