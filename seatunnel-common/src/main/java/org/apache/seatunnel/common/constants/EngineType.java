@@ -21,8 +21,20 @@ package org.apache.seatunnel.common.constants;
 public enum EngineType {
     SPARK2("spark", "seatunnel-spark-2-starter.jar", "start-seatunnel-spark-2-connector-v2.sh"),
     SPARK3("spark", "seatunnel-spark-3-starter.jar", "start-seatunnel-spark-3-connector-v2.sh"),
+    // Physical artifact shipped by the seatunnel-spark-3.5-starter module. The
+    // shared SparkStarter (starter-common) previously hardcoded SPARK3, which
+    // made the emitted spark-submit reference a jar this module never builds.
+    SPARK_35(
+            "spark",
+            "seatunnel-spark-3.5-starter.jar",
+            "start-seatunnel-spark-3.5-connector-v2.sh"),
     FLINK13("flink", "seatunnel-flink-13-starter.jar", "start-seatunnel-flink-13-connector-v2.sh"),
     FLINK15("flink", "seatunnel-flink-15-starter.jar", "start-seatunnel-flink-15-connector-v2.sh"),
+    // Physical artifact shipped by the seatunnel-flink-19-starter module. The
+    // module's FlinkStarter mistakenly referenced FLINK20 (copy-paste from the
+    // sibling flink-20-starter), causing the emitted `flink run` to look for a
+    // jar that isn't packaged.
+    FLINK19("flink", "seatunnel-flink-19-starter.jar", "start-seatunnel-flink-19-connector-v2.sh"),
     FLINK20("flink", "seatunnel-flink-20-starter.jar", "start-seatunnel-flink-20-connector-v2.sh"),
     SEATUNNEL("seatunnel", "seatunnel-starter.jar", "seatunnel.sh");
 

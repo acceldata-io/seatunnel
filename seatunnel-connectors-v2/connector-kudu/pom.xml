@@ -17,19 +17,20 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.seatunnel</groupId>
         <artifactId>seatunnel-connectors-v2</artifactId>
-        <version>2.3.13</version>
+        <version>2.3.13.3.3.6.5-1012</version>
     </parent>
 
     <artifactId>connector-kudu</artifactId>
     <name>SeaTunnel : Connectors V2 : Kudu</name>
 
     <properties>
-        <kudu.version>1.17.0.3.3.6.4-1</kudu.version>
+        <kudu.version>1.17.0.3.3.6.5-1012</kudu.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
     </properties>
 

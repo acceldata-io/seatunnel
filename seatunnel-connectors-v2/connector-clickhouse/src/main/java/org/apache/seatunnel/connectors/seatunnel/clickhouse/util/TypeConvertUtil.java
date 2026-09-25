@@ -26,8 +26,8 @@ import org.apache.seatunnel.api.table.type.SeaTunnelDataType;
 import org.apache.seatunnel.common.exception.CommonErrorCodeDeprecated;
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.exception.ClickhouseConnectorException;
 
-import com.clickhouse.client.ClickHouseColumn;
-import com.clickhouse.client.ClickHouseValue;
+import com.clickhouse.data.ClickHouseColumn;
+import com.clickhouse.data.ClickHouseValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

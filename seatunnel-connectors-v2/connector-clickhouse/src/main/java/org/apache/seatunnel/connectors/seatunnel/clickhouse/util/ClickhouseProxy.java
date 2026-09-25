@@ -32,13 +32,13 @@ import org.apache.seatunnel.connectors.seatunnel.clickhouse.sink.file.Clickhouse
 import org.apache.seatunnel.connectors.seatunnel.clickhouse.source.ClickhousePart;
 
 import com.clickhouse.client.ClickHouseClient;
-import com.clickhouse.client.ClickHouseColumn;
 import com.clickhouse.client.ClickHouseException;
-import com.clickhouse.client.ClickHouseFormat;
 import com.clickhouse.client.ClickHouseNode;
-import com.clickhouse.client.ClickHouseRecord;
 import com.clickhouse.client.ClickHouseRequest;
 import com.clickhouse.client.ClickHouseResponse;
+import com.clickhouse.data.ClickHouseColumn;
+import com.clickhouse.data.ClickHouseFormat;
+import com.clickhouse.data.ClickHouseRecord;
 import lombok.extern.slf4j.Slf4j;
 
 import java.sql.SQLException;
@@ -67,7 +67,7 @@ public class ClickhouseProxy implements AutoCloseable {
     public ClickhouseProxy(ClickHouseNode node) {
         this.client = ClickHouseClient.newInstance(node.getProtocol());
         this.clickhouseRequest =
-                client.connect(node).format(ClickHouseFormat.RowBinaryWithNamesAndTypes);
+                client.read(node).format(ClickHouseFormat.RowBinaryWithNamesAndTypes);
         this.node = node;
     }
 
@@ -79,7 +79,7 @@ public class ClickhouseProxy implements AutoCloseable {
         ClickHouseClient c =
                 shardToDataSource.computeIfAbsent(
                         shard, s -> ClickHouseClient.newInstance(s.getNode().getProtocol()));
-        return c.connect(shard.getNode()).format(ClickHouseFormat.RowBinaryWithNamesAndTypes);
+        return c.read(shard.getNode()).format(ClickHouseFormat.RowBinaryWithNamesAndTypes);
     }
 
     public DistributedEngine getClickhouseDistributedTable(

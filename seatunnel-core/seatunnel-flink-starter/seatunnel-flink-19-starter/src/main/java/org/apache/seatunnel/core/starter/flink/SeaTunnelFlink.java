@@ -20,9 +20,9 @@ package org.apache.seatunnel.core.starter.flink;
 import org.apache.seatunnel.common.constants.EngineType;
 import org.apache.seatunnel.core.starter.exception.CommandException;
 
-/** SeaTunnel Flink 1.20 main entry point. */
+/** SeaTunnel Flink 1.19 main entry point. */
 public class SeaTunnelFlink extends AbstractSeaTunnelFlink {
     public static void main(String[] args) throws CommandException {
-        runSeaTunnel(args, EngineType.FLINK20);
+        runSeaTunnel(args, EngineType.FLINK19);
     }
 }

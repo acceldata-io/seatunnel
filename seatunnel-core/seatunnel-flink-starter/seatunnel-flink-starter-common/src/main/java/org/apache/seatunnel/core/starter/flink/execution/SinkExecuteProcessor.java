@@ -25,7 +25,6 @@ import org.apache.seatunnel.api.table.type.SeaTunnelRow;
 import org.apache.seatunnel.translation.flink.sink.FlinkSink;
 
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
-import org.apache.flink.streaming.api.transformations.SinkV1Adapter;
 
 import java.net.URL;
 import java.util.List;
@@ -45,9 +44,7 @@ public class SinkExecuteProcessor extends AbstractSinkExecuteProcessor {
     protected DataStreamSink<SeaTunnelRow> createVersionSpecificDataStreamSink(
             DataStreamTableInfo stream, SeaTunnelSink sink, int parallelism, Config sinkConfig) {
         return stream.getDataStream()
-                .sinkTo(
-                        SinkV1Adapter.wrap(
-                                new FlinkSink<>(sink, stream.getCatalogTables(), parallelism)))
+                .sinkTo(new FlinkSink<>(sink, stream.getCatalogTables(), parallelism))
                 .name(String.format("%s-Sink", sink.getPluginName()));
     }
 }
