@@ -184,7 +184,6 @@
         <okhttp.version>4.12.0</okhttp.version>
 
     </properties>
-
     <dependencyManagement>
         <dependencies>
             <!-- ***************** slf4j & provider & bridges start ***************** -->
@@ -1063,6 +1062,18 @@
         <system>GitHub</system>
         <url>https://github.com/apache/seatunnel/issues</url>
     </issueManagement>
+    <distributionManagement>
+        <repository>
+            <id>nexus-releases</id>
+            <name>Releases</name>
+            <url>https://repo1.acceldata.dev/repository/odp-staging-release/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <name>Snapshot</name>
+            <url>https://repo1.acceldata.dev/repository/odp-staging-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <profiles>
         <profile>
