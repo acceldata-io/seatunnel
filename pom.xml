@@ -56,7 +56,7 @@
 
     <properties>
         <!--todo The classification is too confusing, reclassify by type-->
-        <odp.release.version>3.3.6.6-SNAPSHOT</odp.release.version>
+        <odp.release.version>3.4.3.0-SNAPSHOT</odp.release.version>
         <revision>2.3.13.${odp.release.version}</revision>
         <seatunnel.config.shade.version>2.1.1</seatunnel.config.shade.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -80,8 +80,8 @@
         <flink.1.20.1.version>1.20.1</flink.1.20.1.version>
         <spark.2.4.0.version>2.4.0</spark.2.4.0.version>
         <spark.3.3.0.version>3.3.0</spark.3.3.0.version>
-        <spark.3.5.5.version>3.5.5.${odp.release.version}</spark.3.5.5.version>
-        <spark.4.1.1.version>4.1.1.${odp.release.version}</spark.4.1.1.version>
+        <spark.3.5.8.version>3.5.8.${odp.release.version}</spark.3.5.8.version>
+        <spark.4.1.2.version>4.1.2.${odp.release.version}</spark.4.1.2.version>
         <scala.binary.spark4.version>2.13</scala.binary.spark4.version>
         <spark.binary.2.4.version>2.4</spark.binary.2.4.version>
         <commons.beanutils.version>1.9.4</commons.beanutils.version>
@@ -174,7 +174,7 @@
         <prometheus.simpleclient.version>0.16.0</prometheus.simpleclient.version>
         <enableSourceJarCreation>true</enableSourceJarCreation>
 
-        <hadoop-aws.version>3.3.6.${odp.release.version}</hadoop-aws.version>
+        <hadoop-aws.version>3.4.3.${odp.release.version}</hadoop-aws.version>
         <software.amazon.awssdk.version>2.31.30</software.amazon.awssdk.version>
         <arrow.version>15.0.1</arrow.version>
         <okhttp.version>4.12.0</okhttp.version>
@@ -520,7 +520,7 @@
 
             <dependency>
                 <groupId>org.apache.seatunnel</groupId>
-                <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
+                <artifactId>seatunnel-hadoop3-3.4.3-uber</artifactId>
                 <version>${project.version}</version>
                 <classifier>optional</classifier>
                 <scope>provided</scope>

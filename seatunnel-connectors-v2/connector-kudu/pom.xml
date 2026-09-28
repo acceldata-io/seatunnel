@@ -30,7 +30,7 @@
     <name>SeaTunnel : Connectors V2 : Kudu</name>
 
     <properties>
-        <kudu.version>1.17.0.${odp.release.version}</kudu.version>
+        <kudu.version>1.18.1.${odp.release.version}</kudu.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
     </properties>
 
@@ -59,7 +59,7 @@
 
         <dependency>
             <groupId>org.apache.seatunnel</groupId>
-            <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
+            <artifactId>seatunnel-hadoop3-3.4.3-uber</artifactId>
             <version>${project.version}</version>
             <classifier>optional</classifier>
             <scope>provided</scope>
