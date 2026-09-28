@@ -38,7 +38,12 @@
         <module>connector-file-base-hadoop</module>
         <module>connector-file-sftp</module>
         <module>connector-file-s3</module>
-        <module>connector-file-obs</module>
+        <!-- TEMP: Huawei OBS connector needs hadoop-huaweicloud:3.1.1.29 and
+             com.huawei.storage:esdk-obs-java:3.19.7.3 which are not mirrored
+             in the ODP Nexus. Not part of the ODP-3.3.6.6 integration scope.
+             The matching connector-file-obs-e2e module is already commented
+             out in seatunnel-e2e/seatunnel-connector-v2-e2e/pom.xml. -->
+        <!-- <module>connector-file-obs</module> -->
         <module>connector-file-jindo-oss</module>
         <module>connector-file-cos</module>
     </modules>

@@ -232,12 +232,17 @@
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
+                <!-- TEMP: Druid removed from ODP-3.3.6.6 — matching skip
+                     in seatunnel-connectors-v2/pom.xml and
+                     seatunnel-e2e/seatunnel-connector-v2-e2e/pom.xml. -->
+                <!--
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>connector-druid</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
+                -->
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>connector-jdbc</artifactId>
@@ -576,12 +581,19 @@
                     <scope>provided</scope>
                 </dependency>
 
+                <!-- TEMP: Huawei OBS connector skipped for ODP-3.3.6.6 — the
+                     hadoop-huaweicloud / esdk-obs-java artifacts are not in
+                     the ODP Nexus and OBS integration is out of scope. Keep
+                     in sync with the module skip in
+                     seatunnel-connectors-v2/connector-file/pom.xml. -->
+                <!--
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>connector-file-obs</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
+                -->
 
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
