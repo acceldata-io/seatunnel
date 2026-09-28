@@ -70,7 +70,10 @@
         <module>connector-rabbitmq</module>
         <module>connector-openmldb</module>
         <module>connector-doris</module>
-        <module>connector-druid</module>
+        <!-- TEMP: Druid removed from ODP-3.4.3.0 (bigtop.bom no longer ships
+             org.apache.druid:*). Skip the connector until Druid returns to
+             the stack or the connector is dropped from the ODP allowlist. -->
+        <!-- <module>connector-druid</module> -->
         <module>connector-maxcompute</module>
         <module>connector-tdengine</module>
         <module>connector-selectdb-cloud</module>
