@@ -30,7 +30,7 @@
     <name>SeaTunnel : Connectors V2 : Hbase</name>
 
     <properties>
-        <hbase.version>2.6.2.${odp.release.version}</hbase.version>
+        <hbase.version>2.6.4.${odp.release.version}</hbase.version>
     </properties>
 
     <dependencies>

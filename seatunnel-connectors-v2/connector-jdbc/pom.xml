@@ -57,7 +57,7 @@
         <mariadb.jdbc.version>3.5.1</mariadb.jdbc.version>
         <highgo.version>6.2.3</highgo.version>
         <presto.version>0.279</presto.version>
-        <trino.version>472.${odp.release.version}</trino.version>
+        <trino.version>481.${odp.release.version}</trino.version>
         <aws.sdk.version>2.31.30</aws.sdk.version>
         <duckdb.version>1.3.1.0</duckdb.version>
     </properties>
@@ -271,7 +271,7 @@
 
         <dependency>
             <groupId>org.apache.seatunnel</groupId>
-            <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
+            <artifactId>seatunnel-hadoop3-3.4.3-uber</artifactId>
             <version>${project.version}</version>
             <classifier>optional</classifier>
             <scope>provided</scope>

@@ -32,9 +32,9 @@
 
     <properties>
         <!-- Imap storage dependency package  -->
-        <hadoop-aliyun.version>3.3.6.${odp.release.version}</hadoop-aliyun.version>
+        <hadoop-aliyun.version>3.4.3.${odp.release.version}</hadoop-aliyun.version>
         <json-smart.version>2.4.7</json-smart.version>
-        <hadoop-aws.version>3.3.6.${odp.release.version}</hadoop-aws.version>
+        <hadoop-aws.version>3.4.3.${odp.release.version}</hadoop-aws.version>
         <netty-buffer.version>4.1.60.Final</netty-buffer.version>
     </properties>
 
@@ -44,10 +44,17 @@
             <artifactId>serializer-protobuf</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- Hadoop 3.4.x stopped shipping commons-collections (v3) as a
+             transitive; use commons-collections4 to match the rest of the
+             repo. WALReader/DefaultReader only need isEmpty/isNotEmpty. -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+        </dependency>
         <!-- hadoop jar -->
         <dependency>
             <groupId>org.apache.seatunnel</groupId>
-            <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
+            <artifactId>seatunnel-hadoop3-3.4.3-uber</artifactId>
             <version>${project.version}</version>
             <classifier>optional</classifier>
             <scope>provided</scope>

@@ -29,7 +29,7 @@
 
     <properties>
         <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
-        <hadoop-aliyun.version>3.3.6.${odp.release.version}</hadoop-aliyun.version>
+        <hadoop-aliyun.version>3.4.3.${odp.release.version}</hadoop-aliyun.version>
         <netty-buffer.version>4.1.89.Final</netty-buffer.version>
     </properties>
 
@@ -66,7 +66,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.seatunnel</groupId>
-            <artifactId>seatunnel-hadoop3-3.3.6-uber</artifactId>
+            <artifactId>seatunnel-hadoop3-3.4.3-uber</artifactId>
             <version>${project.version}</version>
             <classifier>optional</classifier>
             <scope>test</scope>
