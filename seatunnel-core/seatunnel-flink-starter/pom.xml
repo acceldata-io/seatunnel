@@ -33,7 +33,6 @@
     <name>SeaTunnel : Core : Flink Starter :</name>
 
     <modules>
-        <module>seatunnel-flink-19-starter</module>
         <module>seatunnel-flink-starter-common</module>
     </modules>
 
@@ -98,4 +97,27 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- ODP-3.4.3.0 targets Flink 2.2.1 by default. Legacy Flink 1.19.1
+         support is retained under an opt-in profile so builds against the
+         older ODP Flink line stay reproducible. Activate exactly one:
+             mvn ... (defaults to -Pflink-2)
+             mvn ... -Pflink-1.19 -P!flink-2 -->
+    <profiles>
+        <profile>
+            <id>flink-2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>seatunnel-flink-2-starter</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>flink-1.19</id>
+            <modules>
+                <module>seatunnel-flink-19-starter</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

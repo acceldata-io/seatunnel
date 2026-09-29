@@ -17,38 +17,34 @@
 
 package org.apache.seatunnel.translation.flink.serialization;
 
-import org.apache.seatunnel.api.serialization.Serializer;
+import org.apache.seatunnel.translation.flink.sink.FlinkWriterState;
 
 import org.apache.flink.core.io.SimpleVersionedSerializer;
 
 import java.io.IOException;
 
 /**
- * The serializer wrapper of aggregate commit message serializer, used to unify the different
- * implementations of {@link Serializer}.
+ * Empty serializer for FlinkWriterState when the SeaTunnel sink doesn't support state management.
+ * This serializer is used to satisfy Flink 1.20's requirement that
+ * SupportsWriterState.getWriterStateSerializer() must return a non-null value.
  *
- * @param <T> The generic type of aggregate commit message
+ * @param <T> The generic type of writer state (unused in this implementation)
  */
-public class FlinkSimpleVersionedSerializer<T> implements SimpleVersionedSerializer<T> {
-
-    private final Serializer<T> serializer;
-
-    public FlinkSimpleVersionedSerializer(Serializer<T> serializer) {
-        this.serializer = serializer;
-    }
+public class EmptyFlinkWriterStateSerializer<T>
+        implements SimpleVersionedSerializer<FlinkWriterState<T>> {
 
     @Override
     public int getVersion() {
-        return 0;
+        return 1;
     }
 
     @Override
-    public byte[] serialize(T obj) throws IOException {
-        return serializer.serialize(obj);
+    public byte[] serialize(FlinkWriterState<T> state) throws IOException {
+        return new byte[0];
     }
 
     @Override
-    public T deserialize(int version, byte[] serialized) throws IOException {
-        return serializer.deserialize(serialized);
+    public FlinkWriterState<T> deserialize(int version, byte[] serialized) throws IOException {
+        return new FlinkWriterState<>(0, null);
     }
 }

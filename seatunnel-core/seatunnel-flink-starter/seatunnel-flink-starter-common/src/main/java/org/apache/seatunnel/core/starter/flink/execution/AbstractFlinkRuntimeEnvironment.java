@@ -29,16 +29,14 @@ import org.apache.seatunnel.core.starter.flink.utils.ConfigKeyName;
 import org.apache.seatunnel.core.starter.flink.utils.EnvironmentUtil;
 
 import org.apache.flink.api.common.RuntimeExecutionMode;
+import org.apache.flink.configuration.CheckpointingOptions;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.ExternalizedCheckpointRetention;
 import org.apache.flink.configuration.PipelineOptions;
-import org.apache.flink.contrib.streaming.state.RocksDBStateBackend;
-import org.apache.flink.runtime.state.StateBackend;
-import org.apache.flink.runtime.state.filesystem.FsStateBackend;
+import org.apache.flink.configuration.StateBackendOptions;
 import org.apache.flink.streaming.api.CheckpointingMode;
-import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.util.TernaryBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,17 +133,24 @@ public abstract class AbstractFlinkRuntimeEnvironment implements RuntimeEnvironm
 
         if (EnvironmentUtil.hasPathAndWaring(config, ConfigKeyName.CHECKPOINT_DATA_URI)) {
             String uri = config.getString(ConfigKeyName.CHECKPOINT_DATA_URI);
-            StateBackend fsStateBackend = new FsStateBackend(uri);
+            // Flink 2 removed the direct StreamExecutionEnvironment#setStateBackend
+            // and CheckpointConfig#setCheckpointStorage setters — the public API
+            // is now Configuration + env.configure(). Match the previous behaviour:
+            // filesystem checkpoint storage rooted at `uri`, hashmap state backend
+            // by default, embedded rocksdb (incremental) when explicitly requested.
+            Configuration stateConf = new Configuration();
+            stateConf.set(CheckpointingOptions.CHECKPOINT_STORAGE, "filesystem");
+            stateConf.set(CheckpointingOptions.CHECKPOINTS_DIRECTORY, uri);
             if (EnvironmentUtil.hasPathAndWaring(config, ConfigKeyName.STATE_BACKEND)) {
                 String stateBackend = config.getString(ConfigKeyName.STATE_BACKEND);
                 if ("rocksdb".equalsIgnoreCase(stateBackend)) {
-                    StateBackend rocksDBStateBackend =
-                            new RocksDBStateBackend(fsStateBackend, TernaryBoolean.TRUE);
-                    environment.setStateBackend(rocksDBStateBackend);
+                    stateConf.set(StateBackendOptions.STATE_BACKEND, "rocksdb");
+                    stateConf.set(CheckpointingOptions.INCREMENTAL_CHECKPOINTS, true);
                 }
             } else {
-                environment.setStateBackend(fsStateBackend);
+                stateConf.set(StateBackendOptions.STATE_BACKEND, "hashmap");
             }
+            environment.configure(stateConf);
         }
 
         if (EnvironmentUtil.hasPathAndWaring(config, ConfigKeyName.MAX_CONCURRENT_CHECKPOINTS)) {
@@ -155,12 +160,15 @@ public abstract class AbstractFlinkRuntimeEnvironment implements RuntimeEnvironm
 
         if (EnvironmentUtil.hasPathAndWaring(config, ConfigKeyName.CHECKPOINT_CLEANUP_MODE)) {
             boolean cleanup = config.getBoolean(ConfigKeyName.CHECKPOINT_CLEANUP_MODE);
+            // Flink 2 renamed ExternalizedCheckpointCleanup -> ExternalizedCheckpointRetention
+            // and moved the enum to org.apache.flink.configuration; the setter is
+            // setExternalizedCheckpointRetention (enableExternalizedCheckpoints is gone).
             if (cleanup) {
-                checkpointConfig.enableExternalizedCheckpoints(
-                        CheckpointConfig.ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION);
+                checkpointConfig.setExternalizedCheckpointRetention(
+                        ExternalizedCheckpointRetention.DELETE_ON_CANCELLATION);
             } else {
-                checkpointConfig.enableExternalizedCheckpoints(
-                        CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+                checkpointConfig.setExternalizedCheckpointRetention(
+                        ExternalizedCheckpointRetention.RETAIN_ON_CANCELLATION);
             }
         }
 
@@ -182,7 +190,7 @@ public abstract class AbstractFlinkRuntimeEnvironment implements RuntimeEnvironm
         setTimeCharacteristic();
         setCheckpoint();
 
-        EnvironmentUtil.setRestartStrategy(config, environment.getConfig());
+        EnvironmentUtil.setRestartStrategy(config, environment);
 
         if (EnvironmentUtil.hasPathAndWaring(config, ConfigKeyName.BUFFER_TIMEOUT_MILLIS)) {
             long timeout = config.getLong(ConfigKeyName.BUFFER_TIMEOUT_MILLIS);
@@ -230,23 +238,16 @@ public abstract class AbstractFlinkRuntimeEnvironment implements RuntimeEnvironm
     }
 
     private void setTimeCharacteristic() {
+        // Flink 2 removed StreamTimeCharacteristic; every stream is event-time
+        // by default and per-operator time semantics are expressed via
+        // WatermarkStrategy. Retain the config for backward compatibility but
+        // only warn when an unsupported value is requested.
         if (EnvironmentUtil.hasPathAndWaring(config, ConfigKeyName.TIME_CHARACTERISTIC)) {
             String timeType = config.getString(ConfigKeyName.TIME_CHARACTERISTIC);
-            switch (timeType.toLowerCase()) {
-                case "event-time":
-                    environment.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-                    break;
-                case "ingestion-time":
-                    environment.setStreamTimeCharacteristic(TimeCharacteristic.IngestionTime);
-                    break;
-                case "processing-time":
-                    environment.setStreamTimeCharacteristic(TimeCharacteristic.ProcessingTime);
-                    break;
-                default:
-                    LOGGER.warn(
-                            "set time-characteristic failed, unknown time-characteristic [{}],only support event-time,ingestion-time,processing-time",
-                            timeType);
-                    break;
+            if (!"event-time".equalsIgnoreCase(timeType)) {
+                LOGGER.warn(
+                        "Flink 2 supports only event-time; ignoring configured time-characteristic [{}].",
+                        timeType);
             }
         }
     }

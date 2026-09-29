@@ -116,12 +116,25 @@
             </properties>
             <dependencies>
                 <!-- starters -->
+                <!-- Default: ship the Flink 2.2.1 starter (matches the
+                     flink-2 profile activated by seatunnel-flink-starter /
+                     seatunnel-translation-flink). Switch back to the 1.19
+                     starter under -Pflink-1.19 by uncommenting the block
+                     below and commenting this one. -->
+                <dependency>
+                    <groupId>org.apache.seatunnel</groupId>
+                    <artifactId>seatunnel-flink-2-starter</artifactId>
+                    <version>${project.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <!--
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>seatunnel-flink-19-starter</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
+                -->
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>seatunnel-spark-3.5-starter</artifactId>
@@ -960,12 +973,22 @@
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
+                <!-- Default: ship the Flink 2.2.1 starter — see comment on
+                     the earlier <starters> block for the -Pflink-1.19 opt-in. -->
+                <dependency>
+                    <groupId>org.apache.seatunnel</groupId>
+                    <artifactId>seatunnel-flink-2-starter</artifactId>
+                    <version>${project.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <!--
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>seatunnel-flink-19-starter</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
                 </dependency>
+                -->
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
                     <artifactId>seatunnel-spark-3.5-starter</artifactId>

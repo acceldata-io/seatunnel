@@ -22,52 +22,70 @@ import org.apache.seatunnel.shade.com.typesafe.config.ConfigValue;
 
 import org.apache.seatunnel.common.config.CheckResult;
 
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
-import org.apache.flink.api.common.time.Time;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.PipelineOptions;
+import org.apache.flink.configuration.RestartStrategyOptions;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public final class EnvironmentUtil {
 
     private EnvironmentUtil() {}
 
-    public static void setRestartStrategy(Config config, ExecutionConfig executionConfig) {
+    public static void setRestartStrategy(Config config, StreamExecutionEnvironment env) {
+        // Flink 2 removed ExecutionConfig#setRestartStrategy(RestartStrategy).
+        // The public entrypoint is Configuration + StreamExecutionEnvironment#configure.
+        // RestartStrategies helpers (noRestart / fixedDelayRestart / failureRateRestart)
+        // are gone; replace with RestartStrategyOptions keys and java.time.Duration.
         try {
             if (hasPathAndWaring(config, ConfigKeyName.RESTART_STRATEGY)) {
                 String restartStrategy = config.getString(ConfigKeyName.RESTART_STRATEGY);
+                Configuration restartConf = new Configuration();
                 switch (restartStrategy.toLowerCase()) {
                     case "no":
-                        executionConfig.setRestartStrategy(RestartStrategies.noRestart());
+                        restartConf.set(RestartStrategyOptions.RESTART_STRATEGY, "disable");
                         break;
                     case "fixed-delay":
                         int attempts = config.getInt(ConfigKeyName.RESTART_ATTEMPTS);
                         long delay = config.getLong(ConfigKeyName.RESTART_DELAY_BETWEEN_ATTEMPTS);
-                        executionConfig.setRestartStrategy(
-                                RestartStrategies.fixedDelayRestart(attempts, delay));
+                        restartConf.set(RestartStrategyOptions.RESTART_STRATEGY, "fixed-delay");
+                        restartConf.set(
+                                RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS,
+                                attempts);
+                        restartConf.set(
+                                RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY,
+                                Duration.ofMillis(delay));
                         break;
                     case "failure-rate":
                         long failureInterval =
                                 config.getLong(ConfigKeyName.RESTART_FAILURE_INTERVAL);
                         int rate = config.getInt(ConfigKeyName.RESTART_FAILURE_RATE);
                         long delayInterval = config.getLong(ConfigKeyName.RESTART_DELAY_INTERVAL);
-                        executionConfig.setRestartStrategy(
-                                RestartStrategies.failureRateRestart(
-                                        rate,
-                                        Time.of(failureInterval, TimeUnit.MILLISECONDS),
-                                        Time.of(delayInterval, TimeUnit.MILLISECONDS)));
+                        restartConf.set(RestartStrategyOptions.RESTART_STRATEGY, "failure-rate");
+                        restartConf.set(
+                                RestartStrategyOptions
+                                        .RESTART_STRATEGY_FAILURE_RATE_MAX_FAILURES_PER_INTERVAL,
+                                rate);
+                        restartConf.set(
+                                RestartStrategyOptions
+                                        .RESTART_STRATEGY_FAILURE_RATE_FAILURE_RATE_INTERVAL,
+                                Duration.ofMillis(failureInterval));
+                        restartConf.set(
+                                RestartStrategyOptions.RESTART_STRATEGY_FAILURE_RATE_DELAY,
+                                Duration.ofMillis(delayInterval));
                         break;
                     default:
                         log.warn(
                                 "set restart.strategy failed, unknown restart.strategy [{}],only support no,fixed-delay,failure-rate",
                                 restartStrategy);
+                        return;
                 }
+                env.configure(restartConf);
             }
         } catch (Exception e) {
             log.warn("set restart.strategy in config '{}' exception", config, e);

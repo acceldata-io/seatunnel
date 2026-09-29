@@ -27,7 +27,6 @@
     <packaging>pom</packaging>
     <name>SeaTunnel : Translation : Flink :</name>
     <modules>
-        <module>seatunnel-translation-flink-19</module>
         <module>seatunnel-translation-flink-common</module>
     </modules>
 
@@ -40,4 +39,23 @@
         </dependency>
 
     </dependencies>
+
+    <!-- Same profile pair as seatunnel-flink-starter — activate together. -->
+    <profiles>
+        <profile>
+            <id>flink-2</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>seatunnel-translation-flink-2</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>flink-1.19</id>
+            <modules>
+                <module>seatunnel-translation-flink-19</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>
