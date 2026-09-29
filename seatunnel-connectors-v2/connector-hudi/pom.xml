@@ -30,16 +30,33 @@
     <name>SeaTunnel : Connectors V2 : Hudi</name>
 
     <properties>
-        <hudi.version>0.15.0</hudi.version>
+        <hudi.version>1.2.0</hudi.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
         <parquet.version>1.12.2</parquet.version>
         <snappy.version>1.1.10.4</snappy.version>
         <kryo.shaded.version>4.0.2</kryo.shaded.version>
-        <hadoop-aws.version>3.3.6.${odp.release.version}</hadoop-aws.version>
+        <hadoop.version>3.4.3.${odp.release.version}</hadoop.version>
+        <hadoop-aws.version>3.4.3.${odp.release.version}</hadoop-aws.version>
         <connector.name>connector-hudi</connector.name>
     </properties>
 
     <dependencies>
+
+        <!-- Hudi 1.2.0 declares hadoop-common as scope=provided (was compile in
+             0.15), so downstream modules must bring their own Hadoop. Match the
+             root pom's ODP-versioned coordinate used for hadoop-aws. -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.hudi</groupId>

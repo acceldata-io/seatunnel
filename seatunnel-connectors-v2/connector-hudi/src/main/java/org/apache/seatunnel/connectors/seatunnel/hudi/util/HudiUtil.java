@@ -31,12 +31,12 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hudi.avro.AvroSchemaUtils;
 import org.apache.hudi.client.HoodieJavaWriteClient;
 import org.apache.hudi.client.common.HoodieJavaEngineContext;
 import org.apache.hudi.common.config.HoodieStorageConfig;
 import org.apache.hudi.common.engine.EngineType;
 import org.apache.hudi.common.model.HoodieAvroPayload;
+import org.apache.hudi.common.schema.HoodieSchemaUtils;
 import org.apache.hudi.config.HoodieArchivalConfig;
 import org.apache.hudi.config.HoodieCleanConfig;
 import org.apache.hudi.config.HoodieCompactionConfig;
@@ -177,8 +177,7 @@ public class HudiUtil {
                         .withSchema(
                                 convertToSchema(
                                                 seaTunnelRowType,
-                                                AvroSchemaUtils.getAvroRecordQualifiedName(
-                                                        tableName))
+                                                HoodieSchemaUtils.getRecordQualifiedName(tableName))
                                         .toString())
                         .withParallelism(
                                 hudiTable.getInsertShuffleParallelism(),

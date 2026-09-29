@@ -27,7 +27,9 @@
     <name>SeaTunnel : Shade : Scala</name>
 
     <properties>
-        <scala.version>2.13.11</scala.version>
+        <!-- Aligned with root pom scala.spark4.version (ODP-3.4.3.0 Spark 4
+             is built against Scala 2.13.18). -->
+        <scala.version>2.13.18</scala.version>
         <scala.binary.version>2.13</scala.binary.version>
     </properties>
 
