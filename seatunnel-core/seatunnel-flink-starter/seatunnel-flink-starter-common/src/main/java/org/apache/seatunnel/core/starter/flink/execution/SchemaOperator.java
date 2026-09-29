@@ -73,7 +73,8 @@ public class SchemaOperator extends AbstractStreamOperator<SeaTunnelRow>
     public void open() throws Exception {
         super.open();
         try {
-            String flinkJobId = getRuntimeContext().getJobId().toString();
+            // Flink 2 removed RuntimeContext#getJobId(); JobID now comes via JobInfo.
+            String flinkJobId = getRuntimeContext().getJobInfo().getJobId().toString();
             if (!flinkJobId.equals(this.jobId)) {
                 log.info(
                         "Updating SchemaCoordinator from SeaTunnel jobId {} to Flink jobId {}",

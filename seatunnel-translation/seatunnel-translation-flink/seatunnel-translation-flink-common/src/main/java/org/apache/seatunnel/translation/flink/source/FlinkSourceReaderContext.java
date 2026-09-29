@@ -108,7 +108,8 @@ public class FlinkSourceReaderContext implements SourceReader.Context {
 
     private static String getFlinkJobId(SourceReaderContext readerContext) {
         try {
-            return getStreamingRuntimeContext(readerContext).getJobId().toString();
+            // Flink 2 removed RuntimeContext#getJobId(); JobID now comes via JobInfo.
+            return getStreamingRuntimeContext(readerContext).getJobInfo().getJobId().toString();
         } catch (Exception e) {
             // ignore
             log.warn("Get flink job id failed", e);
