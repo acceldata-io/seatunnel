@@ -36,9 +36,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hudi.avro.AvroSchemaUtils;
 import org.apache.hudi.common.model.HoodieAvroPayload;
 import org.apache.hudi.common.model.HoodieTableType;
+import org.apache.hudi.common.schema.HoodieSchemaUtils;
 import org.apache.hudi.common.table.HoodieTableConfig;
 import org.apache.hudi.common.table.HoodieTableMetaClient;
 import org.apache.hudi.exception.HoodieCatalogException;
@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.hbase.thirdparty.com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static org.apache.seatunnel.connectors.seatunnel.hudi.config.HudiSinkOptions.CDC_ENABLED;
 import static org.apache.seatunnel.connectors.seatunnel.hudi.config.HudiSinkOptions.PRECOMBINE_FIELD;
 import static org.apache.seatunnel.connectors.seatunnel.hudi.config.HudiSinkOptions.RECORD_KEY_FIELDS;
@@ -200,9 +200,14 @@ public class HudiCatalog implements Catalog {
                     RECORD_KEY_FIELDS.key(),
                     String.join(",", tableConfig.getRecordKeyFields().get()));
         }
-        if (StringUtils.isNoneBlank(tableConfig.getPreCombineField())) {
-            options.put(PRECOMBINE_FIELD.key(), tableConfig.getPreCombineField());
-        }
+        tableConfig
+                .getOrderingFieldsStr()
+                .ifPresent(
+                        v -> {
+                            if (StringUtils.isNoneBlank(v)) {
+                                options.put(PRECOMBINE_FIELD.key(), v);
+                            }
+                        });
         options.put(TABLE_TYPE.key(), tableType.name());
         options.put(CDC_ENABLED.key(), String.valueOf(tableConfig.isCDCEnabled()));
         return CatalogTable.of(
@@ -217,20 +222,20 @@ public class HudiCatalog implements Catalog {
     @Override
     public void createTable(TablePath tablePath, CatalogTable table, boolean ignoreIfExists)
             throws TableAlreadyExistException, DatabaseNotExistException, CatalogException {
-        checkNotNull(tablePath, "Table path cannot be null");
-        checkNotNull(table, "Table cannot be null");
+        requireNonNull(tablePath, "Table path cannot be null");
+        requireNonNull(table, "Table cannot be null");
 
         String tablePathStr = inferTablePath(tableParentDfsPathStr, tablePath);
         Path path = new Path(tablePathStr);
         try {
             if (!fs.exists(path)) {
-                HoodieTableMetaClient.withPropertyBuilder()
+                HoodieTableMetaClient.newTableBuilder()
                         .setTableType(table.getOptions().get(TABLE_TYPE.key()))
                         .setRecordKeyFields(table.getOptions().get(RECORD_KEY_FIELDS.key()))
                         .setTableCreateSchema(
                                 convertToSchema(
                                                 table.getSeaTunnelRowType(),
-                                                AvroSchemaUtils.getAvroRecordQualifiedName(
+                                                HoodieSchemaUtils.getRecordQualifiedName(
                                                         table.getTableId().getTableName()))
                                         .toString())
                         .setTableName(tablePath.getTableName())
@@ -238,7 +243,7 @@ public class HudiCatalog implements Catalog {
                         .setPayloadClassName(HoodieAvroPayload.class.getName())
                         .setCDCEnabled(
                                 Boolean.parseBoolean(table.getOptions().get(CDC_ENABLED.key())))
-                        .setPreCombineField(table.getOptions().get(PRECOMBINE_FIELD.key()))
+                        .setOrderingFields(table.getOptions().get(PRECOMBINE_FIELD.key()))
                         .initTable(new HadoopStorageConfiguration(hadoopConf), tablePathStr);
             }
         } catch (IOException e) {
@@ -325,7 +330,7 @@ public class HudiCatalog implements Catalog {
     private TableSchema convertSchema(
             TableSchema.Builder tableSchemaBuilder, HoodieTableConfig tableConfig) {
         if (tableConfig.getTableCreateSchema().isPresent()) {
-            Schema schema = tableConfig.getTableCreateSchema().get();
+            Schema schema = tableConfig.getTableCreateSchema().get().getAvroSchema();
             List<Schema.Field> fields = schema.getFields();
             for (Schema.Field field : fields) {
                 tableSchemaBuilder.column(

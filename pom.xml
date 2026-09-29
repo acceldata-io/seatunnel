@@ -61,7 +61,10 @@
         <seatunnel.config.shade.version>2.1.1</seatunnel.config.shade.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <scala.version>2.12.15</scala.version>
+        <!-- ODP-3.3.6.6 pins Spark 3 (and Flink) to Scala 2.12.18 and Spark 4
+             to Scala 2.13.17 (see scala.spark4.version below for the Spark 4
+             full pin). -->
+        <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -82,6 +85,7 @@
         <spark.3.3.0.version>3.3.0</spark.3.3.0.version>
         <spark.3.5.5.version>3.5.5.${odp.release.version}</spark.3.5.5.version>
         <spark.4.1.1.version>4.1.1.${odp.release.version}</spark.4.1.1.version>
+        <scala.spark4.version>2.13.17</scala.spark4.version>
         <scala.binary.spark4.version>2.13</scala.binary.spark4.version>
         <spark.binary.2.4.version>2.4</spark.binary.2.4.version>
         <commons.beanutils.version>1.9.4</commons.beanutils.version>

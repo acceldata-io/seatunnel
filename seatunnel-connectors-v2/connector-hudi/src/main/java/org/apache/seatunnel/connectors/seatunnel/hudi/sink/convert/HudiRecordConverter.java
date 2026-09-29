@@ -24,12 +24,12 @@ import org.apache.seatunnel.connectors.seatunnel.hudi.config.HudiTableConfig;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.hudi.avro.AvroSchemaUtils;
 import org.apache.hudi.common.model.HoodieAvroPayload;
 import org.apache.hudi.common.model.HoodieAvroRecord;
 import org.apache.hudi.common.model.HoodieKey;
 import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.model.WriteOperationType;
+import org.apache.hudi.common.schema.HoodieSchemaUtils;
 import org.apache.hudi.common.util.Option;
 import org.apache.hudi.common.util.StringUtils;
 import org.apache.hudi.exception.HoodieKeyException;
@@ -65,7 +65,7 @@ public class HudiRecordConverter implements Serializable {
                             .convert(
                                     convertToSchema(
                                             seaTunnelRowType.getFieldType(i),
-                                            AvroSchemaUtils.getAvroRecordQualifiedName(
+                                            HoodieSchemaUtils.getRecordQualifiedName(
                                                             hudiTableConfig.getTableName())
                                                     + "."
                                                     + seaTunnelRowType.getFieldNames()[i]),
