@@ -44,10 +44,14 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.security.SecurityUtil;
+import org.apache.hadoop.security.UserGroupInformation;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -110,9 +114,36 @@ public class HbaseClient {
             hbaseParameters.getHbaseExtraConfig().forEach(hbaseConfiguration::set);
         }
         try {
-            Connection connection = ConnectionFactory.createConnection(hbaseConfiguration);
-            return connection;
-        } catch (IOException e) {
+            // Kerberos login path. If both principal + keytab are set, we must:
+            //  1. Mark the shared Hadoop Configuration as "kerberos" so that
+            //     UserGroupInformation routes through Krb5LoginModule (not Simple).
+            //  2. Substitute _HOST so a single HOCON config runs on every worker
+            //     where each host holds only its own <svc>/<fqdn>@REALM principal.
+            //  3. Open the HBase Connection INSIDE ugi.doAs(...) so HBase's
+            //     User.getCurrent() at Connection-construction time resolves to a
+            //     Kerberos User. HBase caches that User on the Connection and all
+            //     subsequent RPC calls on this Connection use SASL/GSSAPI.
+            String principal = hbaseParameters.getKerberosPrincipal();
+            String keytab = hbaseParameters.getKerberosKeytabPath();
+            if (principal != null && !principal.isEmpty() && keytab != null && !keytab.isEmpty()) {
+                hbaseConfiguration.set("hadoop.security.authentication", "kerberos");
+                UserGroupInformation.setConfiguration(hbaseConfiguration);
+                String resolvedPrincipal =
+                        SecurityUtil.getServerPrincipal(
+                                principal, InetAddress.getLocalHost().getCanonicalHostName());
+                log.info(
+                        "HBase connector: kerberos login principal={} keytab={}",
+                        resolvedPrincipal,
+                        keytab);
+                UserGroupInformation ugi =
+                        UserGroupInformation.loginUserFromKeytabAndReturnUGI(
+                                resolvedPrincipal, keytab);
+                return ugi.doAs(
+                        (PrivilegedExceptionAction<Connection>)
+                                () -> ConnectionFactory.createConnection(hbaseConfiguration));
+            }
+            return ConnectionFactory.createConnection(hbaseConfiguration);
+        } catch (IOException | InterruptedException e) {
             String errorMsg = "Build Hbase connection failed.";
             throw new HbaseConnectorException(
                     HbaseConnectorErrorCode.CONNECTION_FAILED, errorMsg, e);
