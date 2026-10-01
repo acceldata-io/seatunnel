@@ -92,7 +92,10 @@ if [ -e "${CONF_DIR}/log4j2_client.properties" ]; then
   fi
 fi
 
-CLASS_PATH=${APP_DIR}/lib/*:${APP_JAR}
+# Honor $SEATUNNEL_CLASSPATH so operators can append cluster-provided jars
+# (e.g. /usr/odp/current/hive-client/lib/* for connector-hive). Appended
+# rather than prepended so bundled connector classes still win on conflicts.
+CLASS_PATH=${APP_DIR}/lib/*:${APP_JAR}${SEATUNNEL_CLASSPATH:+:${SEATUNNEL_CLASSPATH}}
 
 while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ ! $line == \#* ]]; then

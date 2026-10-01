@@ -72,12 +72,15 @@ if [ -n "${FLINK_HOME:-}" ] && [ -d "${FLINK_HOME}/lib" ]; then
   fi
 fi
 
-if [ ! -f "${APP_DIR}/runtime.tar.gz" ];then
+# AbstractFlinkStarter emits `-Dyarn.ship-archives=runtime.tar.gz` as a bare
+# relative path; Flink resolves it against submit CWD. Anchor both the build
+# and the subsequent `eval` to $APP_DIR so inputs, the archive, and Flink's
+# reference all resolve against the installed tree.
+cd "${APP_DIR}"
 
+if [ ! -f "${APP_DIR}/runtime.tar.gz" ]; then
   directories=("connectors" "lib" "plugins")
-
   existing_dirs=()
-
   for dir in "${directories[@]}"; do
       if [ -d "$dir" ]; then
           existing_dirs+=("$dir")
@@ -85,9 +88,9 @@ if [ ! -f "${APP_DIR}/runtime.tar.gz" ];then
   done
 
   if [ ${#existing_dirs[@]} -eq 0 ]; then
-      echo "[connectors,lib,plugins] not existed, skip generate runtime.tar.gz"
+      echo "[connectors,lib,plugins] not existed in ${APP_DIR}, skip generate runtime.tar.gz"
   else
-      tar -zcvf runtime.tar.gz "${existing_dirs[@]}"
+      tar -zcf runtime.tar.gz "${existing_dirs[@]}"
   fi
 fi
 

@@ -186,7 +186,11 @@ if [[ -n "$GC_LOG_PATH" ]]; then
   fi
 fi
 
-CLASS_PATH=${APP_DIR}/lib/*:${APP_JAR}
+# Honor $SEATUNNEL_CLASSPATH so operators can append cluster-provided jars
+# (e.g. /usr/odp/current/hive-client/lib/* for connector-hive, hbase client
+# libs for connector-hbase) without rebuilding connectors. Appended rather
+# than prepended so bundled connector classes still win on conflicts.
+CLASS_PATH=${APP_DIR}/lib/*:${APP_JAR}${SEATUNNEL_CLASSPATH:+:${SEATUNNEL_CLASSPATH}}
 
 echo "start ${NODE_ROLE} node"
 

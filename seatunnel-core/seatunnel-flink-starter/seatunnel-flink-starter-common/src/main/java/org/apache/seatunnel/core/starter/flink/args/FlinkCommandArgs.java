@@ -46,7 +46,7 @@ public class FlinkCommandArgs extends AbstractCommandArgs {
     private DeployMode deployMode = DeployMode.RUN;
 
     @Parameter(
-            names = {"--master", "--target"},
+            names = {"-t", "--master", "--target"},
             converter = FlinkMasterTargetConverter.class,
             description =
                     "Flink job submitted target master, support [local, remote, yarn-session, yarn-per-job, "
