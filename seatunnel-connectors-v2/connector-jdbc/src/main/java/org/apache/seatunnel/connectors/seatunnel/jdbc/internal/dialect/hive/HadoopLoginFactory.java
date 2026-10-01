@@ -18,9 +18,11 @@
 package org.apache.seatunnel.connectors.seatunnel.jdbc.internal.dialect.hive;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.PrivilegedExceptionAction;
 
 // todo: Add seatunnel-auth-kerberos module and move this to hive connector
@@ -40,11 +42,17 @@ public class HadoopLoginFactory {
         // Use global lock to avoid multiple threads to execute setConfiguration at the same time
         synchronized (UserGroupInformation.class) {
             System.setProperty("java.security.krb5.conf", krb5FilePath);
+            // Substitute _HOST in the principal so a single HOCON config runs
+            // on any worker in a multi-host cluster (see comment in
+            // connector-file-base HadoopLoginFactory for the rationale).
+            String resolvedPrincipal =
+                    SecurityUtil.getServerPrincipal(
+                            kerberosPrincipal, InetAddress.getLocalHost().getCanonicalHostName());
             // init configuration
             UserGroupInformation.setConfiguration(configuration);
             UserGroupInformation userGroupInformation =
                     UserGroupInformation.loginUserFromKeytabAndReturnUGI(
-                            kerberosPrincipal, kerberosKeytabPath);
+                            resolvedPrincipal, kerberosKeytabPath);
             return userGroupInformation.doAs(
                     (PrivilegedExceptionAction<T>)
                             () -> action.run(configuration, userGroupInformation));
