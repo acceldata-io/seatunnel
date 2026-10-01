@@ -36,6 +36,10 @@ public enum EngineType {
     // jar that isn't packaged.
     FLINK19("flink", "seatunnel-flink-19-starter.jar", "start-seatunnel-flink-19-connector-v2.sh"),
     FLINK20("flink", "seatunnel-flink-20-starter.jar", "start-seatunnel-flink-20-connector-v2.sh"),
+    // Physical artifact shipped by the seatunnel-flink-2-starter module (Flink
+    // 2.2.1 on ODP-3.4.3.0). Module's FlinkStarter must reference FLINK2 — not
+    // FLINK19 — so the emitted `flink run` finds the actual packaged jar.
+    FLINK2("flink", "seatunnel-flink-2-starter.jar", "start-seatunnel-flink-2-connector-v2.sh"),
     SEATUNNEL("seatunnel", "seatunnel-starter.jar", "seatunnel.sh");
 
     private final String engine;

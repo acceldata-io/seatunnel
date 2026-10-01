@@ -20,13 +20,14 @@ package org.apache.seatunnel.core.starter.flink;
 import org.apache.seatunnel.common.constants.EngineType;
 
 /**
- * The SeaTunnel flink starter for Flink 1.19, used to generate the final flink job execute command.
+ * The SeaTunnel flink starter for Flink 2.2.1 (ODP-3.4.3.0), used to generate the final flink job
+ * execute command.
  */
 public class FlinkStarter extends AbstractFlinkStarter {
-    public static final String APP_JAR_NAME = EngineType.FLINK19.getStarterJarName();
+    public static final String APP_JAR_NAME = EngineType.FLINK2.getStarterJarName();
 
     FlinkStarter(String[] args) {
-        super(args, EngineType.FLINK19);
+        super(args, EngineType.FLINK2);
     }
 
     public static void main(String[] args) {

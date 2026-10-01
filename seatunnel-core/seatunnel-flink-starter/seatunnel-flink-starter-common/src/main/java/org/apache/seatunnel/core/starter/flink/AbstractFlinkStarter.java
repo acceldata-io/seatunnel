@@ -92,9 +92,19 @@ public abstract class AbstractFlinkStarter implements Starter {
         command.add(APP_NAME);
         // set main jar name
         command.add(appJar);
-        // set config file path
+        // set config file path. In yarn-application mode `-Dyarn.ship-files`
+        // stages the HOCON into the AM container working directory, so the
+        // AM must look it up by basename — the submit-host absolute path
+        // doesn't exist on the AM container.
         command.add("--config");
-        command.add(flinkCommandArgs.getConfigFile());
+        if (flinkCommandArgs.getMasterType() == MasterType.YARN_APPLICATION) {
+            command.add(
+                    java.nio.file.Paths.get(flinkCommandArgs.getConfigFile())
+                            .getFileName()
+                            .toString());
+        } else {
+            command.add(flinkCommandArgs.getConfigFile());
+        }
         // set check config flag
         if (flinkCommandArgs.isCheckConfig()) {
             command.add("--check");
