@@ -32,7 +32,7 @@
     <properties>
         <hudi.version>1.2.0</hudi.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
-        <parquet.version>1.12.2</parquet.version>
+        <parquet.version>1.16.0</parquet.version>
         <snappy.version>1.1.10.4</snappy.version>
         <kryo.shaded.version>4.0.2</kryo.shaded.version>
         <hadoop.version>3.4.3.${odp.release.version}</hadoop.version>
