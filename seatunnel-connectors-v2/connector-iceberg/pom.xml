@@ -31,8 +31,8 @@
 
     <properties>
         <iceberg.version>1.10.2</iceberg.version>
-        <parquet-avro.version>1.13.1</parquet-avro.version>
-        <avro.version>1.11.3</avro.version>
+        <parquet-avro.version>1.16.0</parquet-avro.version>
+        <avro.version>1.12.0</avro.version>
         <hive.version>4.1.0.${odp.release.version}</hive.version>
         <connector.name>connector.iceberg</connector.name>
     </properties>
