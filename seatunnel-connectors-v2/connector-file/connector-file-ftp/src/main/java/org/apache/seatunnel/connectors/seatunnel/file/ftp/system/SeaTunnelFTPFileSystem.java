@@ -36,7 +36,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.ParentNotDirectoryException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.ftp.FTPException;
-import org.apache.hadoop.fs.ftp.FTPInputStream;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.net.NetUtils;
@@ -305,7 +304,8 @@ public class SeaTunnelFTPFileSystem extends FileSystem {
         // FSDataInputStream.
         client.changeWorkingDirectory(parent.toUri().getPath());
         InputStream is = client.retrieveFileStream(file.getName());
-        FSDataInputStream fis = new FSDataInputStream(new FTPInputStream(is, client, statistics));
+        FSDataInputStream fis =
+                new FSDataInputStream(new SeaTunnelFTPInputStream(is, client, statistics));
         if (!FTPReply.isPositivePreliminary(client.getReplyCode())) {
             // The ftpClient is an inconsistent state. Must close the stream
             // which in turn will logout and disconnect from FTP server
