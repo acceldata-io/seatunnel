@@ -30,10 +30,10 @@
     <name>SeaTunnel : Connectors V2 : File : Base</name>
 
     <properties>
-        <orc.version>1.5.6</orc.version>
+        <orc.version>1.9.8</orc.version>
         <commons.collecton4.version>4.4</commons.collecton4.version>
         <commons.lang3.version>3.18.0</commons.lang3.version>
-        <parquet-avro.version>1.12.3</parquet-avro.version>
+        <parquet-avro.version>1.16.0</parquet-avro.version>
         <poi.version>4.1.2</poi.version>
         <poi-ooxml.version>4.1.2</poi-ooxml.version>
         <hadoop-minikdc.version>3.3.6.${odp.release.version}</hadoop-minikdc.version>
