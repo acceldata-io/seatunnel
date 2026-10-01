@@ -40,6 +40,7 @@ import org.apache.seatunnel.connectors.seatunnel.iceberg.utils.ExpressionUtils;
 import org.apache.seatunnel.connectors.seatunnel.iceberg.utils.SchemaUtils;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.iceberg.PartitionField;
 import org.apache.iceberg.Schema;
 import org.apache.iceberg.Snapshot;
@@ -59,6 +60,9 @@ import net.sf.jsqlparser.statement.delete.Delete;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -94,7 +98,50 @@ public class IcebergCatalog implements Catalog {
 
     @Override
     public void open() throws CatalogException {
-        this.catalog = icebergCatalogLoader.loadCatalog();
+        org.apache.iceberg.catalog.Catalog raw = icebergCatalogLoader.loadCatalog();
+        UserGroupInformation ugi = icebergCatalogLoader.getKerberosUgi();
+        if (ugi != null) {
+            // Wrap the Iceberg catalog in a dynamic Proxy whose InvocationHandler
+            // runs every method call inside ugi.doAs(...). Without this,
+            // IcebergCatalog's save-mode handler and sink init call
+            // raw.listTables/tableExists/loadTable/createTable from threads
+            // whose current UGI is the ambient OS user and HDFS/Hive RPC
+            // fails with "Client cannot authenticate via:[TOKEN, KERBEROS]".
+            // We proxy on BOTH the Catalog and SupportsNamespaces interfaces
+            // (Hadoop/Nessie/Hive catalogs implement the latter).
+            this.catalog =
+                    (org.apache.iceberg.catalog.Catalog)
+                            Proxy.newProxyInstance(
+                                    raw.getClass().getClassLoader(),
+                                    new Class<?>[] {
+                                        org.apache.iceberg.catalog.Catalog.class,
+                                        SupportsNamespaces.class
+                                    },
+                                    (proxy, method, args) -> {
+                                        try {
+                                            return ugi.doAs(
+                                                    (PrivilegedExceptionAction<Object>)
+                                                            () -> {
+                                                                try {
+                                                                    return method.invoke(raw, args);
+                                                                } catch (
+                                                                        InvocationTargetException
+                                                                                ite) {
+                                                                    throw new RuntimeException(
+                                                                            ite
+                                                                                    .getTargetException());
+                                                                }
+                                                            });
+                                        } catch (RuntimeException re) {
+                                            // unwrap the InvocationTargetException's target so
+                                            // callers see the original Iceberg exception type
+                                            if (re.getCause() != null) throw re.getCause();
+                                            throw re;
+                                        }
+                                    });
+        } else {
+            this.catalog = raw;
+        }
     }
 
     @Override

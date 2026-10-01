@@ -60,6 +60,12 @@ public class HbaseParameters implements Serializable {
 
     private Map<String, String> hbaseExtraConfig;
 
+    /** Kerberos principal (supports _HOST). Null = skip kerberos login. */
+    private String kerberosPrincipal;
+
+    /** Path to the kerberos keytab for {@link #kerberosPrincipal}. */
+    private String kerberosKeytabPath;
+
     @Builder.Default private int caching = HbaseSourceOptions.HBASE_CACHING_CONFIG.defaultValue();
 
     @Builder.Default private int batch = HbaseSourceOptions.HBASE_BATCH_CONFIG.defaultValue();
@@ -117,6 +123,8 @@ public class HbaseParameters implements Serializable {
         builder.enCoding(HbaseSinkOptions.EnCoding.valueOf(encoding.toUpperCase()));
         builder.hbaseExtraConfig(config.get(HbaseSinkOptions.HBASE_EXTRA_CONFIG));
         builder.ttl(config.get(HbaseSinkOptions.HBASE_TTL_CONFIG));
+        builder.kerberosPrincipal(config.get(HbaseBaseOptions.KERBEROS_PRINCIPAL));
+        builder.kerberosKeytabPath(config.get(HbaseBaseOptions.KERBEROS_KEYTAB_PATH));
         return builder.build();
     }
 
@@ -171,6 +179,8 @@ public class HbaseParameters implements Serializable {
         if (pluginConfig.getOptional(HbaseSourceOptions.END_TIMESTAMP).isPresent()) {
             builder.endTimestamp(pluginConfig.get(HbaseSourceOptions.END_TIMESTAMP));
         }
+        builder.kerberosPrincipal(pluginConfig.get(HbaseBaseOptions.KERBEROS_PRINCIPAL));
+        builder.kerberosKeytabPath(pluginConfig.get(HbaseBaseOptions.KERBEROS_KEYTAB_PATH));
         return builder.build();
     }
 

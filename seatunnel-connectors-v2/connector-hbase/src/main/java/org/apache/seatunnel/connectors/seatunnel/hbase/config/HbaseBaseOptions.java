@@ -46,4 +46,17 @@ public class HbaseBaseOptions extends ConnectorCommonOptions {
                     .mapType()
                     .noDefaultValue()
                     .withDescription("Hbase extra config");
+
+    public static final Option<String> KERBEROS_PRINCIPAL =
+            Options.key("kerberos_principal")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Kerberos principal to login with. Supports _HOST substitution.");
+
+    public static final Option<String> KERBEROS_KEYTAB_PATH =
+            Options.key("kerberos_keytab_path")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("Path to the kerberos keytab file for the above principal.");
 }

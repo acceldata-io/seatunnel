@@ -27,6 +27,7 @@ import org.apache.seatunnel.connectors.seatunnel.kudu.exception.KuduConnectorErr
 import org.apache.seatunnel.connectors.seatunnel.kudu.exception.KuduConnectorException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.apache.kudu.ColumnSchema;
@@ -43,6 +44,7 @@ import sun.security.krb5.Config;
 import sun.security.krb5.KrbException;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.List;
@@ -90,12 +92,17 @@ public class KuduUtil {
         Configuration conf = new Configuration();
         conf.set(HADOOP_AUTH_KEY, KRB);
         UserGroupInformation.setConfiguration(conf);
+        // Substitute _HOST in the principal with the local hostname so a
+        // single HOCON config runs on any worker in a multi-host cluster.
+        String resolvedPrincipal =
+                SecurityUtil.getServerPrincipal(
+                        config.getPrincipal(), InetAddress.getLocalHost().getCanonicalHostName());
         log.info(
                 "Start Kerberos authentication using principal {} and keytab {}",
-                config.getPrincipal(),
+                resolvedPrincipal,
                 config.getKeytab());
         return UserGroupInformation.loginUserFromKeytabAndReturnUGI(
-                config.getPrincipal(), config.getKeytab());
+                resolvedPrincipal, config.getKeytab());
     }
 
     private static void reloadKrb5conf(String krb5conf) {

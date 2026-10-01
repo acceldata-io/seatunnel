@@ -44,6 +44,15 @@ public class HudiSinkConfig implements Serializable {
 
     private DataSaveMode dataSaveMode;
 
+    /** Kerberos principal (supports _HOST). Null = skip kerberos login. */
+    private String kerberosPrincipal;
+
+    /** Path to the kerberos keytab for {@link #kerberosPrincipal}. */
+    private String kerberosKeytabPath;
+
+    /** Path to krb5.conf (default /etc/krb5.conf). */
+    private String krb5ConfPath;
+
     public static HudiSinkConfig of(ReadonlyConfig config) {
         Builder builder = HudiSinkConfig.builder();
         Optional<SchemaSaveMode> optionalSchemaSaveMode =
@@ -59,6 +68,9 @@ public class HudiSinkConfig implements Serializable {
                 optionalSchemaSaveMode.orElseGet(HudiSinkOptions.SCHEMA_SAVE_MODE::defaultValue));
         builder.dataSaveMode(
                 optionalDataSaveMode.orElseGet(HudiSinkOptions.DATA_SAVE_MODE::defaultValue));
+        builder.kerberosPrincipal(config.get(HudiSinkOptions.KERBEROS_PRINCIPAL));
+        builder.kerberosKeytabPath(config.get(HudiSinkOptions.KERBEROS_KEYTAB_PATH));
+        builder.krb5ConfPath(config.get(HudiSinkOptions.KRB5_CONF_PATH));
         return builder.build();
     }
 }

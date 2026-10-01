@@ -26,6 +26,7 @@ import org.apache.seatunnel.connectors.seatunnel.iceberg.config.IcebergCommonCon
 import org.apache.seatunnel.connectors.seatunnel.iceberg.exception.IcebergConnectorException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.iceberg.CatalogUtil;
 import org.apache.iceberg.catalog.Catalog;
@@ -37,10 +38,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.PrivilegedExceptionAction;
 import java.util.List;
 
 @Slf4j
@@ -51,15 +54,62 @@ public class IcebergCatalogLoader implements Serializable {
             ImmutableList.of("core-site.xml", "hdfs-site.xml", "hive-site.xml");
     private final IcebergCommonConfig config;
 
+    /**
+     * Kerberos UGI from the most recent {@link #loadCatalog()} call, exposed so callers (notably
+     * {@link org.apache.seatunnel.connectors.seatunnel.iceberg.catalog.IcebergCatalog}) can wrap
+     * subsequent Catalog operations in {@code ugi.doAs(...)}. Null when kerberos is disabled or
+     * login hasn't happened yet.
+     */
+    private transient UserGroupInformation kerberosUgi;
+
     public IcebergCatalogLoader(IcebergCommonConfig config) {
         this.config = config;
+    }
+
+    /** @return UGI if kerberos was configured and login succeeded; null otherwise. */
+    public UserGroupInformation getKerberosUgi() {
+        return kerberosUgi;
     }
 
     public Catalog loadCatalog() {
         // When using the SeaTunnel engine, set the current class loader to prevent loading failures
         Thread.currentThread().setContextClassLoader(IcebergCatalogLoader.class.getClassLoader());
+        Object hadoopConfig = loadHadoopConfig(config);
+        // When kerberos is enabled, doKerberosAuthentication() (invoked inside
+        // loadHadoopConfig) sets the static login user via
+        // UserGroupInformation.loginUserFromKeytab(). But Iceberg's Catalog API
+        // and FileIO calls run on worker threads whose current UGI is the
+        // ambient (unauthenticated) one. Wrap Catalog construction AND any
+        // downstream FileIO/HTTP work in doAs() so HDFS/Hive RPC presents the
+        // Kerberos principal. HBase Connection and HdfsFileSystem both cache
+        // the "User" / UGI at construction time, so wrapping once here is
+        // enough for subsequent calls on the returned Catalog.
+        try {
+            if (UserGroupInformation.isSecurityEnabled()
+                    && UserGroupInformation.getLoginUser().hasKerberosCredentials()) {
+                UserGroupInformation ugi = UserGroupInformation.getLoginUser();
+                // Stash the UGI so IcebergCatalog can wrap subsequent calls
+                // (listTables, tableExists, loadTable, createTable, ...) in
+                // ugi.doAs(). Without that, Iceberg's save-mode / Catalog
+                // operations run on a thread whose current UGI is the ambient
+                // unauthenticated OS user and HDFS/Hive RPC fails with
+                // "Client cannot authenticate via:[TOKEN, KERBEROS]".
+                this.kerberosUgi = ugi;
+                return ugi.doAs(
+                        (PrivilegedExceptionAction<Catalog>)
+                                () ->
+                                        CatalogUtil.buildIcebergCatalog(
+                                                config.getCatalogName(),
+                                                config.getCatalogProps(),
+                                                hadoopConfig));
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new IcebergConnectorException(
+                    CommonErrorCode.KERBEROS_AUTHORIZED_FAILED,
+                    "Failed to build Iceberg catalog under kerberos UGI: " + e.getMessage());
+        }
         return CatalogUtil.buildIcebergCatalog(
-                config.getCatalogName(), config.getCatalogProps(), loadHadoopConfig(config));
+                config.getCatalogName(), config.getCatalogProps(), hadoopConfig);
     }
 
     /** Loading Hadoop configuration through reflection */
@@ -165,11 +215,16 @@ public class IcebergCatalogLoader implements Serializable {
             configuration.set("hadoop.security.authentication", "kerberos");
             UserGroupInformation.setConfiguration(configuration);
             try {
+                // Substitute _HOST with the local hostname so a single HOCON
+                // config runs on any worker holding its own <svc>/<fqdn>@REALM.
+                String resolvedPrincipal =
+                        SecurityUtil.getServerPrincipal(
+                                principal, InetAddress.getLocalHost().getCanonicalHostName());
                 log.info(
                         "Start Kerberos authentication using principal {} and keytab {}",
-                        principal,
+                        resolvedPrincipal,
                         keytabPath);
-                UserGroupInformation.loginUserFromKeytab(principal, keytabPath);
+                UserGroupInformation.loginUserFromKeytab(resolvedPrincipal, keytabPath);
                 UserGroupInformation loginUser = UserGroupInformation.getLoginUser();
                 log.info("Kerberos authentication successful,UGI {}", loginUser);
             } catch (IOException e) {

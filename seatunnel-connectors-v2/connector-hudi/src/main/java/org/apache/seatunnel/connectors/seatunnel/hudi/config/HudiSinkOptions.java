@@ -44,6 +44,25 @@ public class HudiSinkOptions {
                     .noDefaultValue()
                     .withDescription("hudi conf files");
 
+    public static Option<String> KERBEROS_PRINCIPAL =
+            Options.key("kerberos_principal")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription(
+                            "Kerberos principal to login with. Supports _HOST substitution.");
+
+    public static Option<String> KERBEROS_KEYTAB_PATH =
+            Options.key("kerberos_keytab_path")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("Path to the kerberos keytab file for the above principal.");
+
+    public static Option<String> KRB5_CONF_PATH =
+            Options.key("krb5_conf_path")
+                    .stringType()
+                    .defaultValue("/etc/krb5.conf")
+                    .withDescription("Path to krb5.conf (default /etc/krb5.conf).");
+
     public static Option<List<HudiTableConfig>> TABLE_LIST =
             Options.key("table_list")
                     .listType(HudiTableConfig.class)

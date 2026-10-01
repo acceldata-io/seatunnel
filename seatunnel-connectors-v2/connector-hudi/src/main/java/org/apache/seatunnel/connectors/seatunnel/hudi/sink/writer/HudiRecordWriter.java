@@ -165,30 +165,44 @@ public class HudiRecordWriter implements Serializable {
     }
 
     private void executeWrite() {
-        HoodieJavaWriteClient<HoodieAvroPayload> writeClient = clientProvider.getOrCreateClient();
-        String writeInstantTime = writeClient.startCommit();
-        // write records
-        switch (hudiTableConfig.getOpType()) {
-            case INSERT:
-                writeClient.insert(writeRecords, writeInstantTime);
-                break;
-            case UPSERT:
-                writeClient.upsert(writeRecords, writeInstantTime);
-                break;
-            case BULK_INSERT:
-                writeClient.bulkInsert(writeRecords, writeInstantTime);
-                break;
-            default:
-                throw new HudiConnectorException(
-                        HudiErrorCode.UNSUPPORTED_OPERATION,
-                        "Unsupported operation type: " + hudiTableConfig.getOpType());
-        }
+        // Hudi write APIs spawn worker threads whose current UGI is the
+        // ambient (unauthenticated) one even after loginUserFromKeytab(). Wrap
+        // the whole startCommit + insert/upsert/bulkInsert in doAsLoginUser()
+        // so Hadoop/HDFS RPCs underneath present the Kerberos principal.
+        org.apache.seatunnel.connectors.seatunnel.hudi.util.HudiUtil.doAsLoginUser(
+                () -> {
+                    HoodieJavaWriteClient<HoodieAvroPayload> writeClient =
+                            clientProvider.getOrCreateClient();
+                    String writeInstantTime = writeClient.startCommit();
+                    // write records
+                    switch (hudiTableConfig.getOpType()) {
+                        case INSERT:
+                            writeClient.insert(writeRecords, writeInstantTime);
+                            break;
+                        case UPSERT:
+                            writeClient.upsert(writeRecords, writeInstantTime);
+                            break;
+                        case BULK_INSERT:
+                            writeClient.bulkInsert(writeRecords, writeInstantTime);
+                            break;
+                        default:
+                            throw new HudiConnectorException(
+                                    HudiErrorCode.UNSUPPORTED_OPERATION,
+                                    "Unsupported operation type: " + hudiTableConfig.getOpType());
+                    }
+                    return null;
+                });
         writeRecords.clear();
     }
 
     private void executeDelete() {
-        HoodieJavaWriteClient<HoodieAvroPayload> writeClient = clientProvider.getOrCreateClient();
-        writeClient.delete(deleteRecordKeys, writeClient.startCommit());
+        org.apache.seatunnel.connectors.seatunnel.hudi.util.HudiUtil.doAsLoginUser(
+                () -> {
+                    HoodieJavaWriteClient<HoodieAvroPayload> writeClient =
+                            clientProvider.getOrCreateClient();
+                    writeClient.delete(deleteRecordKeys, writeClient.startCommit());
+                    return null;
+                });
         deleteRecordKeys.clear();
     }
 

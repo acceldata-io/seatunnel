@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hudi.client.HoodieJavaWriteClient;
 import org.apache.hudi.client.common.HoodieJavaEngineContext;
@@ -49,6 +50,7 @@ import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import org.apache.parquet.schema.MessageType;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -128,8 +130,16 @@ public class HudiUtil {
             Configuration conf, String principal, String principalFile)
             throws HudiConnectorException {
         try {
+            // Mark auth as kerberos BEFORE the login call so UGI routes through
+            // Krb5LoginModule rather than the Simple fallback. Also substitute
+            // _HOST so a single HOCON config can run on any worker where each
+            // host holds only its own <service>/<fqdn>@REALM entry.
+            conf.set("hadoop.security.authentication", "kerberos");
             UserGroupInformation.setConfiguration(conf);
-            UserGroupInformation.loginUserFromKeytab(principal, principalFile);
+            String resolvedPrincipal =
+                    SecurityUtil.getServerPrincipal(
+                            principal, InetAddress.getLocalHost().getCanonicalHostName());
+            UserGroupInformation.loginUserFromKeytab(resolvedPrincipal, principalFile);
         } catch (IOException e) {
             throw new HudiConnectorException(
                     CommonErrorCodeDeprecated.KERBEROS_AUTHORIZED_FAILED,
@@ -138,8 +148,52 @@ public class HudiUtil {
         }
     }
 
+    /**
+     * Hudi write APIs (create client, upsert, commit) spawn worker threads whose current UGI is the
+     * ambient (unauthenticated) one, even after {@link #initKerberosAuthentication}. Call this
+     * before any Hudi operation to pin the Kerberos UGI onto the current thread so
+     * Hadoop/HBase/Hive RPCs underneath present the service principal.
+     *
+     * <pre>
+     *   HudiUtil.initKerberosAuthentication(conf, principal, keytab);
+     *   HudiUtil.doAsLoginUser(() -&gt; writeClient.upsert(records, instant));
+     * </pre>
+     */
+    public static <T> T doAsLoginUser(java.util.concurrent.Callable<T> action)
+            throws HudiConnectorException {
+        try {
+            if (UserGroupInformation.isSecurityEnabled()
+                    && UserGroupInformation.getLoginUser().hasKerberosCredentials()) {
+                return UserGroupInformation.getLoginUser()
+                        .doAs((java.security.PrivilegedExceptionAction<T>) action::call);
+            }
+            return action.call();
+        } catch (Exception e) {
+            throw new HudiConnectorException(
+                    CommonErrorCodeDeprecated.KERBEROS_AUTHORIZED_FAILED,
+                    "Hudi call under Kerberos UGI failed",
+                    e);
+        }
+    }
+
     public static HoodieJavaWriteClient<HoodieAvroPayload> createHoodieJavaWriteClient(
             HudiSinkConfig hudiSinkConfig, SeaTunnelRowType seaTunnelRowType, String tableName) {
+        // If kerberos is configured, log in BEFORE building the Configuration /
+        // write client so UGI static state is set correctly. Subsequent write
+        // ops are wrapped in HudiUtil.doAsLoginUser() by HudiRecordWriter.
+        if (hudiSinkConfig.getKerberosPrincipal() != null
+                && !hudiSinkConfig.getKerberosPrincipal().isEmpty()
+                && hudiSinkConfig.getKerberosKeytabPath() != null
+                && !hudiSinkConfig.getKerberosKeytabPath().isEmpty()) {
+            if (hudiSinkConfig.getKrb5ConfPath() != null) {
+                System.setProperty("java.security.krb5.conf", hudiSinkConfig.getKrb5ConfPath());
+            }
+            Configuration krbConf = getConfiguration(hudiSinkConfig.getConfFilesPath());
+            initKerberosAuthentication(
+                    krbConf,
+                    hudiSinkConfig.getKerberosPrincipal(),
+                    hudiSinkConfig.getKerberosKeytabPath());
+        }
         List<HudiTableConfig> tableList = hudiSinkConfig.getTableList();
         Optional<HudiTableConfig> hudiTableConfig =
                 tableList.stream()

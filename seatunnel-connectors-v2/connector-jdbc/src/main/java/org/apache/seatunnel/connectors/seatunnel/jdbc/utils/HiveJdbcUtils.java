@@ -23,11 +23,13 @@ import org.apache.seatunnel.connectors.seatunnel.jdbc.config.JdbcConnectionConfi
 import org.apache.seatunnel.connectors.seatunnel.jdbc.exception.JdbcConnectorException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 import static org.apache.seatunnel.connectors.seatunnel.jdbc.exception.JdbcConnectorErrorCode.KERBEROS_AUTHENTICATION_FAILED;
 
@@ -50,11 +52,17 @@ public class HiveJdbcUtils {
             configuration.set("hadoop.security.authentication", "kerberos");
             UserGroupInformation.setConfiguration(configuration);
             try {
+                // Substitute _HOST with the local hostname so the same
+                // HOCON config works on any worker that holds its own
+                // <service>/<fqdn>@REALM entry in the keytab.
+                String resolvedPrincipal =
+                        SecurityUtil.getServerPrincipal(
+                                principal, InetAddress.getLocalHost().getCanonicalHostName());
                 log.info(
                         "Start Kerberos authentication using principal {} and keytab {}",
-                        principal,
+                        resolvedPrincipal,
                         keytabPath);
-                UserGroupInformation.loginUserFromKeytab(principal, keytabPath);
+                UserGroupInformation.loginUserFromKeytab(resolvedPrincipal, keytabPath);
                 log.info("Kerberos authentication successful");
             } catch (IOException e) {
                 String errorMsg =
