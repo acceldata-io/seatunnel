@@ -29,6 +29,7 @@ import org.apache.hadoop.conf.Configuration;
 import com.google.auto.service.AutoService;
 
 import static org.apache.seatunnel.connectors.seatunnel.hudi.util.HudiUtil.getConfiguration;
+import static org.apache.seatunnel.connectors.seatunnel.hudi.util.HudiUtil.initKerberosAuthentication;
 
 @AutoService(Factory.class)
 public class HudiCatalogFactory implements CatalogFactory {
@@ -36,6 +37,19 @@ public class HudiCatalogFactory implements CatalogFactory {
     @Override
     public Catalog createCatalog(String catalogName, ReadonlyConfig options) {
         Configuration hadoopConf = getConfiguration(options.get(HudiSinkOptions.CONF_FILES_PATH));
+        // Kerberos login must happen BEFORE HudiCatalog.open() calls FileSystem.get().
+        // Save-mode handlers run in Phase-1 of job startup (before sink write client
+        // is created) so the Phase-5 login inside createHoodieJavaWriteClient() is
+        // too late for the catalog's path-existence check against HDFS.
+        String principal = options.get(HudiSinkOptions.KERBEROS_PRINCIPAL);
+        String keytab = options.get(HudiSinkOptions.KERBEROS_KEYTAB_PATH);
+        if (principal != null && !principal.isEmpty() && keytab != null && !keytab.isEmpty()) {
+            String krb5 = options.get(HudiSinkOptions.KRB5_CONF_PATH);
+            if (krb5 != null) {
+                System.setProperty("java.security.krb5.conf", krb5);
+            }
+            initKerberosAuthentication(hadoopConf, principal, keytab);
+        }
         String tableDfsPath = options.get(HudiSinkOptions.TABLE_DFS_PATH);
         return new HudiCatalog(catalogName, hadoopConf, tableDfsPath);
     }
@@ -49,7 +63,11 @@ public class HudiCatalogFactory implements CatalogFactory {
     public OptionRule optionRule() {
         return OptionRule.builder()
                 .required(HudiSinkOptions.TABLE_DFS_PATH)
-                .optional(HudiSinkOptions.CONF_FILES_PATH)
+                .optional(
+                        HudiSinkOptions.CONF_FILES_PATH,
+                        HudiSinkOptions.KERBEROS_PRINCIPAL,
+                        HudiSinkOptions.KERBEROS_KEYTAB_PATH,
+                        HudiSinkOptions.KRB5_CONF_PATH)
                 .build();
     }
 }
