@@ -20,9 +20,11 @@ package org.apache.seatunnel.connectors.seatunnel.file.hadoop;
 import org.apache.seatunnel.shade.org.apache.commons.lang3.StringUtils;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.PrivilegedExceptionAction;
 
 public class HadoopLoginFactory {
@@ -43,11 +45,18 @@ public class HadoopLoginFactory {
             if (StringUtils.isNotEmpty(krb5FilePath)) {
                 System.setProperty("java.security.krb5.conf", krb5FilePath);
             }
+            // Substitute _HOST in the principal with the local hostname so a
+            // single HOCON config can run on any worker in a multi-host cluster
+            // where each host holds its own <service>/<fqdn>@REALM entry in the
+            // keytab. Matches Hadoop's own SecurityUtil.login() behaviour.
+            String resolvedPrincipal =
+                    SecurityUtil.getServerPrincipal(
+                            kerberosPrincipal, InetAddress.getLocalHost().getCanonicalHostName());
             // init configuration
             UserGroupInformation.setConfiguration(configuration);
             UserGroupInformation userGroupInformation =
                     UserGroupInformation.loginUserFromKeytabAndReturnUGI(
-                            kerberosPrincipal, kerberosKeytabPath);
+                            resolvedPrincipal, kerberosKeytabPath);
             return userGroupInformation.doAs(
                     (PrivilegedExceptionAction<T>)
                             () -> action.run(configuration, userGroupInformation));
