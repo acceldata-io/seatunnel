@@ -153,7 +153,9 @@ public class BaseServlet extends HttpServlet {
                     value = "";
                 } else {
                     key = URLDecoder.decode(pair.substring(0, eq), StandardCharsets.UTF_8.name());
-                    value = URLDecoder.decode(pair.substring(eq + 1), StandardCharsets.UTF_8.name());
+                    value =
+                            URLDecoder.decode(
+                                    pair.substring(eq + 1), StandardCharsets.UTF_8.name());
                 }
                 reqParameterMap.put(key, value);
             } catch (IOException e) {
