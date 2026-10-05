@@ -91,6 +91,19 @@
                             <exclude>org.apache.logging.log4j:log4j-1.2-api</exclude>
                             <exclude>org.apache.logging.log4j:log4j-to-slf4j</exclude>
                             <exclude>org.apache.seatunnel:seatunnel-hadoop3-3.4.3-uber</exclude>
+                            <!-- Scala runtime: Flink 2.2.1's flink-dist ships its own
+                                 scala-library at runtime. Shading SeaTunnel's transitive
+                                 scala-library (which resolves to the root ${scala.version}
+                                 = 2.12.18 default even for the Flink-2 build chain) into
+                                 the starter fat jar leaks Scala-2.12 WrappedArray.class
+                                 bytes into Flink's user classloader; when Flink 2's
+                                 scala-library-2.13 is used by the runtime, the two Scala
+                                 stdlibs clash. Keep scala out of the starter — Flink
+                                 provides it. Mirror of the same exclude on the
+                                 seatunnel-spark-starter parent pom. -->
+                            <exclude>org.scala-lang:scala-library</exclude>
+                            <exclude>org.scala-lang:scala-reflect</exclude>
+                            <exclude>org.scala-lang.modules:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

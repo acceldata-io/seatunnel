@@ -27,6 +27,7 @@
 
     <properties>
         <scala.binary.version>${scala.binary.spark4.version}</scala.binary.version>
+        <scala.version>${scala.spark4.version}</scala.version>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -58,6 +59,18 @@
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <version>${spark.4.1.2.version}</version>
             <scope>${spark.scope}</scope>
+        </dependency>
+
+        <!-- Spark 4.x bundles its own scala-library 2.13.x; without this
+             override, the transitive scala-library 2.12.18 pulled in by
+             seatunnel-config-shade (via seatunnel-common) leaks into the
+             shaded artifact and causes WrappedArray-2.12 to clash with
+             Spark's 2.13 runtime. Keep it provided. -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
