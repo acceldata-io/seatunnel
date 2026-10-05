@@ -58,6 +58,23 @@
                             <shadeSourcesContent>true</shadeSourcesContent>
                             <shadedArtifactAttached>false</shadedArtifactAttached>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!--
+                                Only ship scala-compiler's `scala.tools.*` bytes (relocated
+                                under ${seatunnel.shade.package}.scala.tools.*). Do NOT bundle
+                                scala-library / scala-reflect — they come at runtime from
+                                whichever engine loads this jar (Zeta ships scala-library
+                                2.12.18, Spark 4 ships 2.13.17, etc.). Bundling scala-library
+                                here leaked a Scala-2.12 WrappedArray.class into every
+                                downstream fat jar (seatunnel-transforms-v2.jar in particular)
+                                and crashed Spark 4 jobs with
+                                IncompatibleClassChangeError on WrappedArray.toBuffer().
+                            -->
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>org.scala-lang:scala-library</exclude>
+                                    <exclude>org.scala-lang:scala-reflect</exclude>
+                                </excludes>
+                            </artifactSet>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
