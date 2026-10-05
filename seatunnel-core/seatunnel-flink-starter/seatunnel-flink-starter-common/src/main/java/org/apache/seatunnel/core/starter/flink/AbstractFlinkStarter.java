@@ -39,8 +39,10 @@ public abstract class AbstractFlinkStarter implements Starter {
     private final FlinkCommandArgs flinkCommandArgs;
     private final String appJar;
     private final String shellName;
+    private final EngineType engineType;
 
     protected AbstractFlinkStarter(String[] args, EngineType engineType) {
+        this.engineType = engineType;
         this.shellName = engineType.getStarterShellName();
         this.flinkCommandArgs =
                 CommandLineUtils.parse(args, new FlinkCommandArgs(), shellName, true);
@@ -66,8 +68,15 @@ public abstract class AbstractFlinkStarter implements Starter {
         List<String> command = new ArrayList<>();
         // set start command
         command.add("${FLINK_HOME}/bin/flink");
-        // set deploy mode, run or run-application
-        command.add(flinkCommandArgs.getDeployMode().getDeployMode());
+        // set deploy mode: Flink 2.x removed `run-application` as a sub-action
+        // and unified it under `flink run --target yarn-application`. Keep
+        // `run-application` for Flink 1.x where it still exists.
+        if (engineType == EngineType.FLINK2
+                && flinkCommandArgs.getDeployMode() == DeployMode.RUN_APPLICATION) {
+            command.add(DeployMode.RUN.getDeployMode());
+        } else {
+            command.add(flinkCommandArgs.getDeployMode().getDeployMode());
+        }
         // set submitted target master
         if (flinkCommandArgs.getMasterType() != null) {
             command.add("--target");
