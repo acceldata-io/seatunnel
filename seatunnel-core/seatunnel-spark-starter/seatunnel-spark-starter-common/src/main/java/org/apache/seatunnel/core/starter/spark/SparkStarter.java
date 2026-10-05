@@ -364,8 +364,8 @@ public class SparkStarter implements Starter {
         }
 
         /**
-         * Resolve a user-writable path for the plugins tarball that spark-submit ships via
-         * {@code --files}.
+         * Resolve a user-writable path for the plugins tarball that spark-submit ships via {@code
+         * --files}.
          *
          * <p>{@link Common#pluginTarball()} resolves to {@code ${SEATUNNEL_HOME}/plugins.tar.gz},
          * but on packaged installs (RPM/mpack) {@code $SEATUNNEL_HOME} is owned by root while the
@@ -376,8 +376,8 @@ public class SparkStarter implements Starter {
          * <p>The tarball is throwaway — spark-submit reads it synchronously before shipping to
          * YARN, and the file isn't referenced again by this process. Put it under {@code
          * java.io.tmpdir} with a per-invocation suffix (process PID + millis) to avoid colliding
-         * with concurrent submissions from the same user, and register for {@code deleteOnExit}
-         * so stale copies don't accumulate.
+         * with concurrent submissions from the same user, and register for {@code deleteOnExit} so
+         * stale copies don't accumulate.
          */
         private static Path resolvePluginTarballPath() {
             String tmpDir = System.getProperty("java.io.tmpdir", "/tmp");
@@ -385,7 +385,10 @@ public class SparkStarter implements Starter {
             Path tarball =
                     Paths.get(
                             tmpDir,
-                            "seatunnel-plugins-" + pid + "-" + System.currentTimeMillis()
+                            "seatunnel-plugins-"
+                                    + pid
+                                    + "-"
+                                    + System.currentTimeMillis()
                                     + ".tar.gz");
             tarball.toFile().deleteOnExit();
             return tarball;
