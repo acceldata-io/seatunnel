@@ -52,7 +52,7 @@
         <!-- ============ Starter Bin ============  -->
         <!--connector starter v2-->
         <fileSet>
-            <directory>../seatunnel-core/seatunnel-flink-starter/seatunnel-flink-19-starter/src/main/bin</directory>
+            <directory>../seatunnel-core/seatunnel-flink-starter/seatunnel-flink-2-starter/src/main/bin</directory>
             <outputDirectory>/bin</outputDirectory>
             <fileMode>0755</fileMode>
         </fileSet>
@@ -143,7 +143,7 @@
             <unpack>false</unpack>
             <includes>
                 <!-- Flink V2 starter -->
-                <include>org.apache.seatunnel:seatunnel-flink-19-starter:jar</include>
+                <include>org.apache.seatunnel:seatunnel-flink-2-starter:jar</include>
                 <!-- Spark V2 starter -->
                 <include>org.apache.seatunnel:seatunnel-spark-3.5-starter:jar</include>
                 <include>org.apache.seatunnel:seatunnel-spark-4.1-starter:jar</include>
