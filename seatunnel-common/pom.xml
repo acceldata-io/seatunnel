@@ -65,11 +65,43 @@
             <classifier>optional</classifier>
         </dependency>
 
+        <!--
+            Defensive hygiene (not a fix for a specific crash) — seatunnel-arrow
+            (classifier=optional) is already a shaded fat jar with io.netty
+            relocated under ${seatunnel.shade.package}.io.netty, but its
+            published POM still lists arrow-memory-netty + unshaded
+            io.netty:netty-{buffer,common}:4.1.104.Final as compile-scope
+            transitives. Without this exclusion every downstream module that
+            depends on seatunnel-common (translation-flink-2, flink-2-starter,
+            spark-starter, Zeta engine, several connectors) re-pulls unshaded
+            io.netty-4.1.104 into its own fat jar — then collides at runtime
+            with whatever io.netty version the host engine ships (Spark 3.5
+            and Spark 4.1 both bundle their own io.netty-4.1.x in jars/).
+
+            This is NOT the fix for F-18 (TaskManager LinkageError on
+            org.apache.flink.shaded.netty4.*). F-18 lives in the Flink source
+            (SubmoduleClassLoader + ComponentClassLoader longest-prefix patch);
+            arrow's unshaded io.netty is a different package entirely and
+            doesn't participate in that crash.
+
+            Keeping this exclusion so the io.netty version that reaches the
+            runtime is always the host engine's, not whatever arrow pinned.
+        -->
         <dependency>
             <groupId>org.apache.seatunnel</groupId>
             <artifactId>seatunnel-arrow</artifactId>
             <version>${project.version}</version>
             <classifier>optional</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.arrow</groupId>
+                    <artifactId>arrow-memory-netty</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
