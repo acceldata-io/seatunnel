@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -135,15 +136,30 @@ public class BaseServlet extends HttpServlet {
 
     protected Map<String, String> getParameterMap(HttpServletRequest req) {
         Map<String, String> reqParameterMap = new HashMap<>();
-
-        Map<String, String[]> parameterMap = req.getParameterMap();
-
-        for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
-            String paramName = entry.getKey();
-            String[] paramValues = entry.getValue();
-
-            for (String value : paramValues) {
-                reqParameterMap.put(paramName, value);
+        String queryString = req.getQueryString();
+        if (queryString == null || queryString.isEmpty()) {
+            return reqParameterMap;
+        }
+        for (String pair : queryString.split("&")) {
+            if (pair.isEmpty()) {
+                continue;
+            }
+            int eq = pair.indexOf('=');
+            String key;
+            String value;
+            try {
+                if (eq < 0) {
+                    key = URLDecoder.decode(pair, StandardCharsets.UTF_8.name());
+                    value = "";
+                } else {
+                    key = URLDecoder.decode(pair.substring(0, eq), StandardCharsets.UTF_8.name());
+                    value =
+                            URLDecoder.decode(
+                                    pair.substring(eq + 1), StandardCharsets.UTF_8.name());
+                }
+                reqParameterMap.put(key, value);
+            } catch (IOException e) {
+                log.warn("Failed to URL-decode query parameter '{}', skipping.", pair, e);
             }
         }
         return reqParameterMap;
