@@ -32,8 +32,7 @@ import org.apache.spark.sql.catalyst.expressions.GenericRow;
 import org.apache.spark.unsafe.types.UTF8String;
 
 import scala.Tuple2;
-import scala.collection.immutable.AbstractMap;
-import scala.collection.mutable.WrappedArray;
+import scala.collection.JavaConverters;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -49,6 +48,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+/**
+ * Scala-version-neutral row converter. Avoids Scala 2.12-only types (previously {@code
+ * scala.collection.mutable.WrappedArray}, {@code scala.collection.immutable.AbstractMap}) so the
+ * same compiled jar runs on both Spark 3.5 (Scala 2.12) and Spark 4.1 (Scala 2.13). Uses the stable
+ * supertypes {@code scala.collection.Seq} / {@code scala.collection.Map} (both unchanged across the
+ * two Scala versions) and {@link scala.collection.JavaConverters} for construction. See {@link
+ * InternalRowConverter} for the full rationale.
+ */
 public class SeaTunnelRowConverter extends RowConverter<GenericRow> {
 
     private final int[] indexes;
@@ -166,9 +173,11 @@ public class SeaTunnelRowConverter extends RowConverter<GenericRow> {
         return newMap;
     }
 
-    private WrappedArray.ofRef<?> convertArray(Object[] arrayData, ArrayType<?, ?> arrayType) {
+    private scala.collection.Seq<?> convertArray(Object[] arrayData, ArrayType<?, ?> arrayType) {
         if (arrayData.length == 0) {
-            return new WrappedArray.ofRef<>(new Object[0]);
+            return JavaConverters.asScalaBufferConverter(Collections.<Object>emptyList())
+                    .asScala()
+                    .toSeq();
         }
         int num = arrayData.length;
         if (SqlType.MAP.equals(arrayType.getElementType().getSqlType())) {
@@ -176,12 +185,14 @@ public class SeaTunnelRowConverter extends RowConverter<GenericRow> {
             for (int i = 0; i < num; i++) {
                 arrayMapData[i] = convert(arrayData[i], arrayType.getElementType());
             }
-            return new WrappedArray.ofRef<>(arrayMapData);
+            return JavaConverters.asScalaBufferConverter(Arrays.asList(arrayMapData))
+                    .asScala()
+                    .toSeq();
         }
         for (int i = 0; i < num; i++) {
             arrayData[i] = convert(arrayData[i], arrayType.getElementType());
         }
-        return new WrappedArray.ofRef<>(arrayData);
+        return JavaConverters.asScalaBufferConverter(Arrays.asList(arrayData)).asScala().toSeq();
     }
 
     // GenericRow To SeaTunnel
@@ -229,9 +240,13 @@ public class SeaTunnelRowConverter extends RowConverter<GenericRow> {
             case STRING:
                 return field.toString();
             case MAP:
-                return reconvertMap((AbstractMap<?, ?>) field, (MapType<?, ?>) dataType);
+                // scala.collection.Map covers both Scala 2.12 AbstractMap and 2.13
+                // immutable.HashMap at runtime without a direct type reference.
+                return reconvertMap((scala.collection.Map<?, ?>) field, (MapType<?, ?>) dataType);
             case ARRAY:
-                return reconvertArray((WrappedArray.ofRef<?>) field, (ArrayType<?, ?>) dataType);
+                // scala.collection.Seq covers both 2.12 WrappedArray.ofRef and 2.13
+                // immutable.ArraySeq.ofRef at runtime.
+                return reconvertArray((scala.collection.Seq<?>) field, (ArrayType<?, ?>) dataType);
             default:
                 return field;
         }
@@ -256,14 +271,12 @@ public class SeaTunnelRowConverter extends RowConverter<GenericRow> {
     }
 
     /**
-     * Convert AbstractMap to LinkedHashMap
-     *
-     * @param abstractMap AbstractMap data
-     * @param mapType fields type map
-     * @return java.util.LinkedHashMap
-     * @see AbstractMap
+     * Convert a Scala Map (any 2.12 or 2.13 flavor — AbstractMap, HashTrieMap, immutable.HashMap,
+     * …) to a java.util.LinkedHashMap by walking its keySet/values iterators. Only uses the stable
+     * scala.collection.Map public API shared by both Scala 2.12 and 2.13.
      */
-    private Map<Object, Object> reconvertMap(AbstractMap<?, ?> abstractMap, MapType<?, ?> mapType) {
+    private Map<Object, Object> reconvertMap(
+            scala.collection.Map<?, ?> abstractMap, MapType<?, ?> mapType) {
         if (abstractMap == null || abstractMap.size() == 0) {
             return Collections.emptyMap();
         }
@@ -284,14 +297,11 @@ public class SeaTunnelRowConverter extends RowConverter<GenericRow> {
     }
 
     /**
-     * Convert WrappedArray.ofRef to Objects array
-     *
-     * @param arrayData WrappedArray.ofRef data
-     * @param arrayType fields type array
-     * @return Objects array
-     * @see WrappedArray.ofRef
+     * Convert a Scala Seq (any 2.12 or 2.13 flavor — WrappedArray.ofRef in 2.12,
+     * immutable.ArraySeq.ofRef in 2.13) to a plain Object[] by iterating. Uses only the stable
+     * scala.collection.Seq public API shared by both Scala versions.
      */
-    private Object reconvertArray(WrappedArray.ofRef<?> arrayData, ArrayType<?, ?> arrayType) {
+    private Object reconvertArray(scala.collection.Seq<?> arrayData, ArrayType<?, ?> arrayType) {
         if (arrayData == null || arrayData.size() == 0) {
             return Collections.emptyList().toArray();
         }

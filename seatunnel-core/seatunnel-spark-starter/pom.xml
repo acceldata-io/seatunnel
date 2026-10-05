@@ -99,6 +99,17 @@
                             <!-- spark3.x use slf4j + log4j2.x -->
                             <exclude>org.apache.logging.log4j:log4j-to-slf4j</exclude>
                             <exclude>org.apache.seatunnel:seatunnel-hadoop3-3.3.6-uber</exclude>
+                            <!-- Scala runtime: Spark 3.5 ships scala-library-2.12.18 and
+                                 Spark 4.1 ships scala-library-2.13.17 inside their own
+                                 jars/ directories. Shading our transitive scala-library
+                                 into the starter fat jar double-loads Scala classes under
+                                 Spark's child-first classloader and breaks ABI
+                                 (IncompatibleClassChangeError on WrappedArray etc.).
+                                 Let Spark provide its own scala-library at runtime for
+                                 both Spark 3.5 AND Spark 4.1. -->
+                            <exclude>org.scala-lang:scala-library</exclude>
+                            <exclude>org.scala-lang:scala-reflect</exclude>
+                            <exclude>org.scala-lang.modules:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

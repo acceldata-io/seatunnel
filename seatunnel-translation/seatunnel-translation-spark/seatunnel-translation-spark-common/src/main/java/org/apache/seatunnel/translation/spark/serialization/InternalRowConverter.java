@@ -51,9 +51,8 @@ import org.apache.spark.unsafe.types.UTF8String;
 
 import scala.Some;
 import scala.Tuple2;
-import scala.collection.immutable.HashMap.HashTrieMap;
+import scala.collection.JavaConverters;
 import scala.collection.immutable.List;
-import scala.collection.mutable.WrappedArray;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -71,6 +70,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
 
+/**
+ * Scala-version-neutral row converter. Avoids direct references to Scala 2.12-only types ({@code
+ * scala.collection.mutable.WrappedArray}, {@code scala.collection.immutable.HashMap.HashTrieMap})
+ * so the same compiled .class works on BOTH Spark 3.5 (Scala 2.12 runtime, returns {@code
+ * WrappedArray.ofRef} / {@code HashTrieMap} values) AND Spark 4.1 (Scala 2.13 runtime, returns
+ * {@code immutable.ArraySeq.ofRef} / {@code immutable.HashMap}). Both engines satisfy the supertype
+ * {@code instanceof scala.collection.Seq} / {@code instanceof scala.collection.Map} checks at the
+ * call sites. For construction we use {@link scala.collection.JavaConverters} which exists in both
+ * Scala versions.
+ */
 public final class InternalRowConverter extends RowConverter<InternalRow> {
     private final int[] indexes;
 
@@ -221,7 +230,7 @@ public final class InternalRowConverter extends RowConverter<InternalRow> {
     }
 
     private static Map<Object, Object> reconvertMap(
-            HashTrieMap<?, ?> hashTrieMap, MapType<?, ?> mapType) {
+            scala.collection.Map<?, ?> hashTrieMap, MapType<?, ?> mapType) {
         if (hashTrieMap == null || hashTrieMap.size() == 0) {
             return Collections.emptyMap();
         }
@@ -322,8 +331,11 @@ public final class InternalRowConverter extends RowConverter<InternalRow> {
             case MAP:
                 if (field instanceof MapData) {
                     return reconvertMap((MapData) field, (MapType<?, ?>) dataType);
-                } else if (field instanceof HashTrieMap) {
-                    return reconvertMap((HashTrieMap<?, ?>) field, (MapType<?, ?>) dataType);
+                } else if (field instanceof scala.collection.Map) {
+                    // Common supertype of Scala 2.12's HashTrieMap and Scala 2.13's
+                    // immutable.HashMap — both engines satisfy this instanceof.
+                    return reconvertMap(
+                            (scala.collection.Map<?, ?>) field, (MapType<?, ?>) dataType);
                 } else {
                     throw new RuntimeException(
                             String.format(
@@ -341,9 +353,12 @@ public final class InternalRowConverter extends RowConverter<InternalRow> {
             case ARRAY:
                 if (field instanceof ArrayData) {
                     return reconvertArray((ArrayData) field, (ArrayType<?, ?>) dataType);
-                } else if (field instanceof WrappedArray.ofRef) {
+                } else if (field instanceof scala.collection.Seq) {
+                    // Common supertype of Scala 2.12's WrappedArray.ofRef and Scala
+                    // 2.13's immutable.ArraySeq.ofRef — both engines satisfy this
+                    // instanceof.
                     return reconvertArray(
-                            (WrappedArray.ofRef<?>) field, (ArrayType<?, ?>) dataType);
+                            (scala.collection.Seq<?>) field, (ArrayType<?, ?>) dataType);
                 } else {
                     throw new RuntimeException(
                             String.format(
@@ -383,7 +398,7 @@ public final class InternalRowConverter extends RowConverter<InternalRow> {
     }
 
     private static Object reconvertArray(
-            WrappedArray.ofRef<?> arrayData, ArrayType<?, ?> arrayType) {
+            scala.collection.Seq<?> arrayData, ArrayType<?, ?> arrayType) {
         if (arrayData == null || arrayData.size() == 0) {
             return Collections.emptyList().toArray();
         }
@@ -441,7 +456,12 @@ public final class InternalRowConverter extends RowConverter<InternalRow> {
                 && internalRowField instanceof ArrayData) {
             ArrayData arrayData = (ArrayData) internalRowField;
             if (arrayData.numElements() == 0) {
-                return new WrappedArray.ofRef<>(new Object[0]);
+                // Scala-version-neutral empty Seq construction. Works on both Scala
+                // 2.12 (returns a WrappedArray) and 2.13 (returns an immutable Seq) —
+                // Spark catalyst accepts either as a valid ArrayType field value.
+                return JavaConverters.asScalaBufferConverter(Collections.<Object>emptyList())
+                        .asScala()
+                        .toSeq();
             }
             org.apache.spark.sql.types.ArrayType arrayType =
                     (org.apache.spark.sql.types.ArrayType) dataType;
@@ -450,7 +470,8 @@ public final class InternalRowConverter extends RowConverter<InternalRow> {
             for (int i = 0; i < num; i++) {
                 values[i] = convertToField(values[i], arrayType.elementType());
             }
-            return new WrappedArray.ofRef<>(values);
+            // Same Scala-version-neutral path for a populated Seq.
+            return JavaConverters.asScalaBufferConverter(Arrays.asList(values)).asScala().toSeq();
         }
         return internalRowField;
     }

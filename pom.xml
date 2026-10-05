@@ -741,6 +741,25 @@
                                 <exclude>log4j:*</exclude>
                                 <exclude>org.apache.logging.log4j:*</exclude>
                                 <exclude>commons-logging:*</exclude>
+                                <!--
+                                    Never bundle scala-library / scala-reflect into any
+                                    SeaTunnel fat jar. Transitives (seatunnel-api →
+                                    seatunnel-common → seatunnel-config-shade →
+                                    scala-library:2.12.18) silently leaked a Scala-2.12
+                                    WrappedArray.class into seatunnel-transforms-v2.jar
+                                    and seatunnel-starter.jar, which then clashed with
+                                    Spark 4.1.2's scala-library-2.13.17 at runtime
+                                    (IncompatibleClassChangeError on WrappedArray.toBuffer).
+                                    Every engine SeaTunnel runs on — Zeta (Hazelcast JVM
+                                    with its own scala pin), Spark 3.5 (jars/scala-library
+                                    2.12.18), Spark 4.1 (jars/scala-library 2.13.17),
+                                    Flink (lib/flink-dist's scala-library) — supplies its
+                                    own scala-library at runtime; no SeaTunnel fat jar
+                                    should carry one.
+                                -->
+                                <exclude>org.scala-lang:scala-library</exclude>
+                                <exclude>org.scala-lang:scala-reflect</exclude>
+                                <exclude>org.scala-lang.modules:*</exclude>
                             </excludes>
                         </artifactSet>
                         <filters>
