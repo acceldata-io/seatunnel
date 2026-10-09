@@ -29,7 +29,6 @@ import org.apache.seatunnel.common.constants.PluginType;
 import org.apache.seatunnel.core.starter.Starter;
 import org.apache.seatunnel.core.starter.spark.args.SparkCommandArgs;
 import org.apache.seatunnel.core.starter.utils.CommandLineUtils;
-import org.apache.seatunnel.core.starter.utils.CompressionUtils;
 import org.apache.seatunnel.core.starter.utils.ConfigBuilder;
 import org.apache.seatunnel.plugin.discovery.seatunnel.SeaTunnelSinkPluginDiscovery;
 import org.apache.seatunnel.plugin.discovery.seatunnel.SeaTunnelSourcePluginDiscovery;
@@ -37,7 +36,6 @@ import org.apache.seatunnel.plugin.discovery.seatunnel.SeaTunnelSourcePluginDisc
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -356,42 +354,24 @@ public class SparkStarter implements Starter {
         public List<String> buildCommands() throws IOException {
             Common.setDeployMode(commandArgs.getDeployMode());
             Common.setStarter(true);
-            Path pluginTarball = resolvePluginTarballPath();
-            CompressionUtils.tarGzip(Common.pluginRootDir(), pluginTarball);
-            this.files.add(pluginTarball);
+            // ${SEATUNNEL_HOME}/plugins.tar.gz, pre-built by the Ambari mpack
+            // (common-services/SEATUNNEL/.../package/scripts/setup.py:build_runtime_archives)
+            // on every CONFIGURE/START/RESTART action. Root-owned, 0644,
+            // atomic ".tmp"+validate+rename so a crash can't publish a
+            // truncated gzip. Pre-F-21 (ODP-8153) this starter would
+            // CompressionUtils.tarGzip the file at submit time under the
+            // service user, which hit AccessDeniedException because the
+            // root-owned install root is unwritable. The intermediate F-21
+            // workaround moved the tar to java.io.tmpdir + deleteOnExit,
+            // but the launcher script runs this JVM to print the
+            // spark-submit command, exits, then shell-evals spark-submit
+            // in a second JVM — deleteOnExit fired on the first JVM shutdown
+            // and spark-submit then saw FileNotFoundException. Letting the
+            // mpack prepare the artefact once sidesteps both failure modes
+            // and matches how the Flink runtime.tar.gz is handled.
+            this.files.add(Common.pluginTarball());
             this.files.add(Paths.get(commandArgs.getConfigFile()));
             return super.buildCommands();
-        }
-
-        /**
-         * Resolve a user-writable path for the plugins tarball that spark-submit ships via {@code
-         * --files}.
-         *
-         * <p>{@link Common#pluginTarball()} resolves to {@code ${SEATUNNEL_HOME}/plugins.tar.gz},
-         * but on packaged installs (RPM/mpack) {@code $SEATUNNEL_HOME} is owned by root while the
-         * submitting user is typically a service account (seatunnel, spark, ...). Writing a
-         * submit-time artefact into the root-owned install root fails with {@link
-         * java.nio.file.AccessDeniedException} on the first submission under each new user.
-         *
-         * <p>The tarball is throwaway — spark-submit reads it synchronously before shipping to
-         * YARN, and the file isn't referenced again by this process. Put it under {@code
-         * java.io.tmpdir} with a per-invocation suffix (process PID + millis) to avoid colliding
-         * with concurrent submissions from the same user, and register for {@code deleteOnExit} so
-         * stale copies don't accumulate.
-         */
-        private static Path resolvePluginTarballPath() {
-            String tmpDir = System.getProperty("java.io.tmpdir", "/tmp");
-            String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-            Path tarball =
-                    Paths.get(
-                            tmpDir,
-                            "seatunnel-plugins-"
-                                    + pid
-                                    + "-"
-                                    + System.currentTimeMillis()
-                                    + ".tar.gz");
-            tarball.toFile().deleteOnExit();
-            return tarball;
         }
     }
 }
