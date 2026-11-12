@@ -56,7 +56,7 @@
 
     <properties>
         <!--todo The classification is too confusing, reclassify by type-->
-        <odp.release.version>3.4.3.0-SNAPSHOT</odp.release.version>
+        <odp.release.version>3.4.3.1-SNAPSHOT</odp.release.version>
         <revision>2.3.13.${odp.release.version}</revision>
         <seatunnel.config.shade.version>2.1.1</seatunnel.config.shade.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
